@@ -123,10 +123,15 @@
   .tree-wrap {
     background: #fff; border: 1px solid var(--border);
     border-radius: 12px; padding: 22px 26px;
-    font-family: "SF Mono", "Menlo", monospace;
+    font-family: "SF Mono", "Menlo", "Source Code Pro", monospace;
     font-size: 12px; line-height: 1.85;
     color: var(--ink-mid);
     overflow-x: auto;
+    white-space: pre;       /* preserve line breaks + indentation */
+    tab-size: 2;
+  }
+  @media (max-width: 760px) {
+    .tree-wrap { font-size: 11px; padding: 16px 18px; }
   }
   .tree-wrap .regime { color: var(--ink); font-weight: 700; font-size: 13px; }
   .tree-wrap .major { color: var(--ink-mid); font-weight: 600; }
