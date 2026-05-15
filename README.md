@@ -4,6 +4,8 @@
 >
 > 一个为"判断"而设计的工程系统。
 
+[中文版 →](./README.zh.md)
+
 If [Andrej Karpathy's LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) is "outsource the bookkeeping of what's true," **Cognitive OS is the layer above it — outsource the bookkeeping of what you believe and why.**
 
 ---
