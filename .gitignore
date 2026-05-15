@@ -1,0 +1,31 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editors / IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Backups / scratch
+*.bak
+*.bak2
+*.tmp
+*.orig
+
+# Obsidian (in case anyone clones into a vault)
+.obsidian/
+.trash/
+
+# OS / misc
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Local notes never to ship
+SCRATCH.md
+TODO-LOCAL.md

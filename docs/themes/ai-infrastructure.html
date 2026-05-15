@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 基础设施扩张 · 主题动态 · Cognitive OS</title>
+<style>
+  :root {
+    --sand: #f8f6f2;
+    --sand-mid: #f0ede7;
+    --sand-deep: #e8e4d8;
+    --ink: #1a1a1a;
+    --ink-mid: #4a4a4a;
+    --ink-soft: #777;
+    --ink-ghost: #b0aba0;
+    --border: #e0ddd6;
+    --border-lt: #ece9e2;
+    --active: #c0805a;
+    --active-bg: #fdf3ed;
+    --active-border: #f0c8a8;
+    --active-dark: #8a5028;
+    --conf-high: #2d7a50;
+    --conf-mid: #b08020;
+    --conf-low: #b04040;
+    --green: #5a9a6a;
+    --green-bg: #e6f5ec;
+    --yellow: #d4a418;
+    --yellow-bg: #fdf4dc;
+    --red: #c04848;
+    --red-bg: #fceeec;
+    --gray-bg: #f0ede7;
+  }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+    background: var(--sand);
+    color: var(--ink);
+    line-height: 1.65;
+    font-size: 14px;
+  }
+  a { text-decoration: none; color: inherit; }
+
+  /* ─── NAV ─── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(248, 246, 242, 0.95);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    height: 54px; padding: 0 40px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-brand {
+    font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-back, .nav-engine {
+    font-size: 11.5px; color: var(--ink-soft);
+    padding: 5px 12px; border: 1px solid var(--border);
+    border-radius: 6px; transition: all 0.15s;
+  }
+  .nav-back:hover, .nav-engine:hover { background: #fff; color: var(--ink); }
+  .nav-links { display: flex; gap: 8px; }
+  @media (max-width: 760px) { nav { padding: 0 20px; } .nav-engine { display: none; } }
+
+  /* ─── PAGE ─── */
+  .page { max-width: 980px; margin: 0 auto; padding: 0 40px 80px; }
+  @media (max-width: 760px) { .page { padding: 0 20px 60px; } }
+
+  /* ─── HEADER ─── */
+  .topic-header {
+    padding: 52px 0 32px; border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+  .crumb {
+    font-size: 11px; color: var(--ink-ghost); margin-bottom: 14px;
+    letter-spacing: 0.08em;
+  }
+  .crumb a { color: var(--active); }
+  .topic-header h1 {
+    font-size: 34px; font-weight: 700; letter-spacing: -0.025em;
+    line-height: 1.2; margin-bottom: 14px;
+  }
+  .topic-meta {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px;
+  }
+  .tag {
+    font-size: 11px; font-weight: 600;
+    padding: 4px 10px; border-radius: 5px;
+    letter-spacing: 0.02em;
+  }
+  .tag-active { background: var(--active-bg); color: var(--active-dark); border: 1px solid var(--active-border); }
+  .tag-conf { background: var(--green-bg); color: var(--conf-high); border: 1px solid #b8dcc0; }
+  .tag-stage { background: #fce0e0; color: #b04848; border: 1px solid #f0bdbd; }
+  .tag-update {
+    background: transparent; color: var(--ink-soft);
+    border: 1px solid var(--border); font-weight: 500;
+  }
+  .topic-summary {
+    font-size: 15px; color: var(--ink-mid); max-width: 720px;
+    line-height: 1.75;
+  }
+  .topic-summary strong { color: var(--ink); }
+
+  /* ─── SECTION ─── */
+  section { margin-bottom: 48px; }
+  .section-head {
+    display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px;
+  }
+  .section-head h2 {
+    font-size: 17px; font-weight: 700; letter-spacing: -0.015em;
+  }
+  .section-head p { font-size: 12px; color: var(--ink-ghost); }
+  .section-divider { flex: 1; height: 1px; background: var(--border); }
+
+  /* ─── JUDGMENT CARD ─── */
+  .judgment-card {
+    background: #fff; border: 1px solid var(--border);
+    border-left: 3px solid var(--active);
+    border-radius: 10px; padding: 24px 28px;
+  }
+  .judgment-date {
+    font-size: 11px; color: var(--active-dark); font-weight: 600;
+    letter-spacing: 0.06em; margin-bottom: 12px;
+  }
+  .judgment-card h3 {
+    font-size: 16px; font-weight: 700; margin-bottom: 14px;
+    line-height: 1.4;
+  }
+  .judgment-card p {
+    font-size: 13.5px; color: var(--ink-mid); line-height: 1.8;
+    margin-bottom: 12px;
+  }
+  .judgment-card p:last-child { margin-bottom: 0; }
+  .judgment-card strong { color: var(--ink); }
+  .judgment-card .highlight {
+    background: var(--yellow-bg); padding: 1px 5px; border-radius: 3px;
+    color: var(--ink); font-weight: 500;
+  }
+
+  /* ─── L3 TRANSMISSION CHAIN ─── */
+  .chain {
+    background: #fff; border: 1px solid var(--border); border-radius: 10px;
+    padding: 22px 26px;
+  }
+  .chain-flow {
+    display: grid; grid-template-columns: repeat(8, 1fr);
+    gap: 4px; margin-bottom: 18px;
+  }
+  .chain-node {
+    background: var(--gray-bg); border-radius: 6px;
+    padding: 10px 6px; text-align: center;
+    font-size: 10.5px; line-height: 1.35;
+    border: 1px solid var(--border);
+  }
+  .chain-node.done { background: var(--green-bg); border-color: #b8dcc0; color: var(--conf-high); }
+  .chain-node.partial { background: var(--yellow-bg); border-color: #f0d0a0; color: var(--conf-mid); }
+  .chain-node .num { display: block; font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+  .chain-bottleneck {
+    background: var(--yellow-bg); border: 1px solid #f0d0a0;
+    border-radius: 6px; padding: 10px 14px;
+    font-size: 12px; color: var(--ink-mid); line-height: 1.6;
+  }
+  .chain-bottleneck strong { color: var(--conf-mid); }
+  @media (max-width: 760px) { .chain-flow { grid-template-columns: repeat(4, 1fr); } }
+
+  /* ─── L2 NARRATIVES ─── */
+  .narrative-list {
+    background: #fff; border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden;
+  }
+  .narrative-row {
+    display: grid; grid-template-columns: 1fr 110px 60px;
+    gap: 16px; padding: 14px 22px;
+    border-bottom: 1px solid var(--border-lt);
+    align-items: center; font-size: 12.5px;
+  }
+  .narrative-row:last-child { border-bottom: none; }
+  .narrative-row.head {
+    background: var(--sand-mid); color: var(--ink-soft);
+    font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .narrative-name { font-weight: 600; color: var(--ink); }
+  .narrative-claim {
+    font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; font-weight: 400;
+  }
+  .narrative-stage { font-size: 11px; color: var(--ink-mid); }
+  .narrative-heat {
+    text-align: center; font-weight: 700;
+    font-family: "SF Mono", monospace;
+  }
+  .heat-E { color: var(--green); }
+  .heat-A { color: var(--yellow); }
+  .heat-S { color: var(--active); }
+  .heat-B { color: var(--red); }
+
+  /* ─── L5 PRICING ─── */
+  .pricing-grid {
+    display: grid; gap: 10px;
+  }
+  .pricing-row {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 18px;
+    display: grid; grid-template-columns: 1.4fr 90px 1fr;
+    gap: 14px; align-items: center;
+  }
+  .price-scenario { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .price-scenario small { display: block; font-size: 11px; color: var(--ink-soft); font-weight: 400; margin-top: 2px; }
+  .price-bar-container {
+    height: 10px; background: var(--border-lt); border-radius: 5px;
+    overflow: hidden; position: relative;
+  }
+  .price-bar {
+    height: 100%; border-radius: 5px;
+    background: linear-gradient(to right, #c8a050, #c0805a);
+  }
+  .price-bar.crowded { background: linear-gradient(to right, #c87850, #b04848); }
+  .price-bar.early { background: linear-gradient(to right, #88a878, #c8a050); }
+  .price-text {
+    font-size: 11.5px; color: var(--ink-mid); line-height: 1.5;
+  }
+  .price-pct { font-size: 13px; font-weight: 700; color: var(--ink); font-family: "SF Mono", monospace; }
+  @media (max-width: 760px) { .pricing-row { grid-template-columns: 1fr; } }
+
+  /* ─── FALSIFIERS ─── */
+  .falsifier-list {
+    background: #fff; border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden;
+  }
+  .falsifier-row {
+    display: grid; grid-template-columns: 50px 1fr 200px;
+    gap: 16px; padding: 14px 22px;
+    border-bottom: 1px solid var(--border-lt);
+    align-items: center; font-size: 12.5px;
+  }
+  .falsifier-row:last-child { border-bottom: none; }
+  .falsifier-row.head {
+    background: var(--sand-mid); color: var(--ink-soft);
+    font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .f-num {
+    font-weight: 700; color: var(--ink); font-family: "SF Mono", monospace;
+    font-size: 13px;
+  }
+  .f-cond { color: var(--ink-mid); line-height: 1.55; }
+  .f-status {
+    font-size: 11.5px; font-weight: 600;
+    padding: 4px 10px; border-radius: 5px;
+    text-align: center;
+  }
+  .f-deep-deny { background: var(--red-bg); color: var(--red); border: 1px solid #f0bcbc; }
+  .f-deny { background: #f8e8e0; color: var(--active-dark); border: 1px solid #e8c8b0; }
+  .f-warn { background: var(--yellow-bg); color: var(--conf-mid); border: 1px solid #f0d0a0; }
+  .f-support { background: var(--green-bg); color: var(--conf-high); border: 1px solid #b8dcc0; }
+  .f-untriggered { background: var(--gray-bg); color: var(--ink-soft); border: 1px solid var(--border); }
+  @media (max-width: 760px) { .falsifier-row { grid-template-columns: 40px 1fr; } .falsifier-row > :last-child { grid-column: 1 / -1; } }
+
+  /* ─── TIMELINE ─── */
+  .timeline {
+    background: #fff; border: 1px solid var(--border); border-radius: 10px;
+    padding: 22px 28px;
+  }
+  .timeline-item {
+    padding: 14px 0; border-bottom: 1px dashed var(--border-lt);
+    display: grid; grid-template-columns: 110px 1fr;
+    gap: 18px;
+  }
+  .timeline-item:last-child { border-bottom: none; }
+  .timeline-date {
+    font-size: 11.5px; font-weight: 700; color: var(--active-dark);
+    font-family: "SF Mono", monospace;
+  }
+  .timeline-body { font-size: 12.5px; color: var(--ink-mid); line-height: 1.7; }
+  .timeline-body strong { color: var(--ink); }
+
+  /* ─── FOOTER ─── */
+  .privacy-note {
+    background: var(--sand-mid); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 18px;
+    font-size: 11.5px; color: var(--ink-mid); line-height: 1.65;
+    margin-bottom: 40px;
+  }
+  .privacy-note strong { color: var(--ink); }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 26px 40px; max-width: 980px; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: var(--ink-ghost);
+  }
+  footer strong { color: var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">AI 基础设施扩张 · 主题动态</div>
+  <div class="nav-links">
+    <a href="index.html" class="nav-back">← 全部主题</a>
+    <a href="../index.html" class="nav-engine">Cognitive OS</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="topic-header">
+    <div class="crumb"><a href="index.html">投资主题</a> &nbsp;→&nbsp; 技术与产业范式升级 &nbsp;→&nbsp; AI 生产力革命 &nbsp;→&nbsp; <strong>AI 基础设施扩张</strong></div>
+    <h1>AI 基础设施扩张</h1>
+    <div class="topic-meta">
+      <span class="tag tag-active">🔥 Active</span>
+      <span class="tag tag-conf">🟢 高置信</span>
+      <span class="tag tag-stage">拥挤期 S+ · 双 trigger 叠加</span>
+      <span class="tag tag-update">最近一次蒸馏：本周</span>
+    </div>
+    <p class="topic-summary">
+      AI 算力扩张的<strong>一阶 GPU 兑现景气</strong>已进入拥挤期 S+；<strong>电力 / 液冷 / 先进封装</strong>二阶配套仍有赔率；
+      <strong>AI 实物约束通胀</strong>已升至 CPI 篮子级，从"科技股估值故事"升级为宏观第三大边际驱动。
+    </p>
+  </div>
+
+  <!-- 当前判断 -->
+  <section id="judgment">
+    <div class="section-head">
+      <h2>当前判断</h2>
+      <p>基于最新一次蒸馏的核心结论</p>
+      <div class="section-divider"></div>
+    </div>
+    <div class="judgment-card">
+      <div class="judgment-date">⚡ 本周蒸馏 · 五大增量</div>
+      <h3>双 trigger 叠加 + 实物约束 CPI 篮子级兑现 + 候选 Falsifier 量化条件首次满足</h3>
+      <p>
+        <strong>① 波动率塌缩首次独立触发</strong>：恐慌指数处于历史 20% 分位以下，
+        与上周已触发的 <strong>AI 市值占 S&P 500 创纪录 ~45%</strong> 形成<span class="highlight">双 trigger 叠加</span> →
+        AI-linked 主题集群的"减仓窗口优先级"由<strong>中</strong>升至<strong>高</strong>。
+      </p>
+      <p>
+        <strong>② 通胀 CPI 篮子级兑现</strong>：CPI 三年新高 + 核心 CPI 持续粘性 = "AI 实物约束通胀"完成从科技板块定价到 CPI 篮子级宏观兑现的跃迁。
+        Falsifier F1（AI CapEx 不再外溢配套链）<span class="highlight">反向证伪深化至最高层级</span>。
+      </p>
+      <p>
+        <strong>③ 久期定价硬化</strong>：长端利率突破 5% 后维持 + 货币政策框架重定价进入临门窗口 = 长久期 AI 资产估值承压 + capex 融资成本继续上行。
+        L5 表新增"久期定价"子节点（Pricing-风险溢价 PI ~50%）。
+      </p>
+      <p>
+        <strong>④ 候选 Falsifier 量化条件首次满足</strong>：二线 GPU cloud 头部公司 Q1 财报盈亏失衡 + 利息支出大幅增长 +100% YoY =
+        <span class="highlight">候选 F6（二线 GPU cloud 利息覆盖率 &lt; 1.5x）首次量化达标</span>，正式纳入 Falsifier 表监测。
+      </p>
+      <p>
+        <strong>⑤ "AI 节制溢价"叙事二次硬化</strong>：某 Mag 7 头部以高强度回购 + 高 R&D 增速作为反共识路径独立估值 →
+        Mag 7 内部"capex 主线 / AI 收入半径 / AI 节制溢价"<strong>三轴新框架</strong>成形。
+      </p>
+    </div>
+  </section>
+
+  <!-- L3 TRANSMISSION -->
+  <section id="l3">
+    <div class="section-head">
+      <h2>事实路径（L3 传导层）</h2>
+      <p>8 节点传导链 · 自上游 → 下游</p>
+      <div class="section-divider"></div>
+    </div>
+    <div class="chain">
+      <div class="chain-flow">
+        <div class="chain-node done"><span class="num">①</span>模型训练 / 推理扩张</div>
+        <div class="chain-node done"><span class="num">②</span>GPU / 服务器部署</div>
+        <div class="chain-node done"><span class="num">③</span>机柜功率密度 ↑</div>
+        <div class="chain-node done"><span class="num">④</span>高速互联需求</div>
+        <div class="chain-node done"><span class="num">⑤</span>供配电需求</div>
+        <div class="chain-node partial"><span class="num">⑥</span>液冷散热</div>
+        <div class="chain-node partial"><span class="num">⑦</span>机房改造</div>
+        <div class="chain-node partial"><span class="num">⑧</span>二阶订单兑现</div>
+      </div>
+      <div class="chain-bottleneck">
+        <strong>⚠️ 当前瓶颈 — 节点 ⑤ 已确认升级为硬约束</strong>：电力 / 配电是现阶段最硬的物理约束——某地区数据中心计划因变压器短缺被延后，高压变压器交付周期延长至数年。<strong>已立法级实质化</strong>（地区议会允许电力公司推迟大容量客户接入）。
+      </div>
+    </div>
+  </section>
+
+  <!-- L2 NARRATIVES -->
+  <section id="l2">
+    <div class="section-head">
+      <h2>叙事路径（L2）</h2>
+      <p>6 条叙事 S 曲线状态追踪</p>
+      <div class="section-divider"></div>
+    </div>
+    <div class="narrative-list">
+      <div class="narrative-row head">
+        <div>叙事 · 核心命题</div>
+        <div>S 曲线阶段</div>
+        <div>热度</div>
+      </div>
+      <div class="narrative-row">
+        <div>
+          <div class="narrative-name">超级周期叙事</div>
+          <div class="narrative-claim">AI CapEx 无上限，算力是新石油</div>
+        </div>
+        <div class="narrative-stage">鱼尾期</div>
+        <div class="narrative-heat heat-B">B</div>
+      </div>
+      <div class="narrative-row">
+        <div>
+          <div class="narrative-name">电力瓶颈叙事</div>
+          <div class="narrative-claim">电力 / 制冷是 AI 扩张下一真实瓶颈</div>
+        </div>
+        <div class="narrative-stage">加速期 → 立法级</div>
+        <div class="narrative-heat heat-A">A</div>
+      </div>
+      <div class="narrative-row">
+        <div>
+          <div class="narrative-name">ASIC 加速叙事</div>
+          <div class="narrative-claim">算力生产函数从 GPU 主导 → 异构组合</div>
+        </div>
+        <div class="narrative-stage">加速期</div>
+        <div class="narrative-heat heat-S">S</div>
+      </div>
+      <div class="narrative-row">
+        <div>
+          <div class="narrative-name">ROI 质疑叙事</div>
+          <div class="narrative-claim">Hyperscaler CapEx 超大 vs 实际 AI 收入回报</div>
+        </div>
+        <div class="narrative-stage">拥挤期</div>
+        <div class="narrative-heat heat-A">A</div>
+      </div>
+      <div class="narrative-row">
+        <div>
+          <div class="narrative-name">AI 节制溢价（候选）</div>
+          <div class="narrative-claim">反共识：AI 节制 + 大规模回购 = 新型估值锚</div>
+        </div>
+        <div class="narrative-stage">萌芽期 → 加速 A 早段</div>
+        <div class="narrative-heat heat-A">A</div>
+      </div>
+      <div class="narrative-row">
+        <div>
+          <div class="narrative-name">AI 收入半径主导</div>
+          <div class="narrative-claim">离散度从 Beta 转 Alpha 来源</div>
+        </div>
+        <div class="narrative-stage">加速期</div>
+        <div class="narrative-heat heat-A">A</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- L5 PRICING -->
+  <section id="l5">
+    <div class="section-head">
+      <h2>定价层（L5）</h2>
+      <p>事实路径 × 叙事路径 交汇 — Price-In 与剩余赔率</p>
+      <div class="section-divider"></div>
+    </div>
+    <div class="pricing-grid">
+
+      <div class="pricing-row">
+        <div class="price-scenario">
+          一阶 GPU / 服务器持续景气
+          <small>主情景 · 超级周期鱼尾 + 双 trigger 叠加</small>
+        </div>
+        <div>
+          <div class="price-pct">~82%</div>
+          <div class="price-bar-container"><div class="price-bar crowded" style="width:82%"></div></div>
+        </div>
+        <div class="price-text">
+          <strong style="color:var(--red);">剩余赔率消失 / 反转概率上升</strong> — 减仓窗口优先级"中→高"
+        </div>
+      </div>
+
+      <div class="pricing-row">
+        <div class="price-scenario">
+          AI 市值占比阈值（v3.2 监控变量）
+          <small>拥挤度量化锚定 + 波动率塌缩双 trigger</small>
+        </div>
+        <div>
+          <div class="price-pct">~45%</div>
+          <div class="price-bar-container"><div class="price-bar crowded" style="width:45%"></div></div>
+        </div>
+        <div class="price-text">
+          双 trigger 阈值定义：≥45% 占比 + VIX ≤20% 分位 = 双 trigger 叠加（已触发）
+        </div>
+      </div>
+
+      <div class="pricing-row">
+        <div class="price-scenario">
+          久期定价（新增子节点）
+          <small>Higher-for-longer 硬化叙事 + 长端突破 5%</small>
+        </div>
+        <div>
+          <div class="price-pct">~50%</div>
+          <div class="price-bar-container"><div class="price-bar" style="width:50%"></div></div>
+        </div>
+        <div class="price-text">
+          中等赔率 — 货币政策接任 + Q1 财报双观察窗口
+        </div>
+      </div>
+
+      <div class="pricing-row">
+        <div class="price-scenario">
+          液冷 / 先进封装二阶
+          <small>超级周期延伸叙事 + CoWoS sold out</small>
+        </div>
+        <div>
+          <div class="price-pct">~50%</div>
+          <div class="price-bar-container"><div class="price-bar" style="width:50%"></div></div>
+        </div>
+        <div class="price-text">
+          中等赔率 — 配套订单边际扩大；制度化前段 S- 边缘
+        </div>
+      </div>
+
+      <div class="pricing-row">
+        <div class="price-scenario">
+          电力 / 变压器 / 配电瓶颈
+          <small>电力瓶颈叙事立法级 + 节点 ⑤ 实质化</small>
+        </div>
+        <div>
+          <div class="price-pct">~38%</div>
+          <div class="price-bar-container"><div class="price-bar early" style="width:38%"></div></div>
+        </div>
+        <div class="price-text">
+          <strong style="color:var(--conf-high);">较优赔率窗口</strong> — 核能 / SMR 路径相对优势进一步扩大
+        </div>
+      </div>
+
+      <div class="pricing-row">
+        <div class="price-scenario">
+          ASIC 取代 NVIDIA 份额
+          <small>ASIC 加速叙事 + 中国侧硬验证</small>
+        </div>
+        <div>
+          <div class="price-pct">~30%</div>
+          <div class="price-bar-container"><div class="price-bar early" style="width:30%"></div></div>
+        </div>
+        <div class="price-text">
+          <strong style="color:var(--conf-high);">较大赔率</strong> — 中国侧 H2 是兑现窗口
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FALSIFIERS -->
+  <section id="falsifiers">
+    <div class="section-head">
+      <h2>Falsifier 当前状态</h2>
+      <p>6 条证伪条件 · 实时校验中</p>
+      <div class="section-divider"></div>
+    </div>
+    <div class="falsifier-list">
+      <div class="falsifier-row head">
+        <div>F#</div>
+        <div>证伪条件</div>
+        <div>当前状态</div>
+      </div>
+      <div class="falsifier-row">
+        <div class="f-num">F1</div>
+        <div class="f-cond">AI CapEx 不再外溢到配套链</div>
+        <div class="f-status f-deep-deny">⛔ CPI 篮子级深化（最高层级）</div>
+      </div>
+      <div class="falsifier-row">
+        <div class="f-num">F2</div>
+        <div class="f-cond">电力 / 液冷只是短期瓶颈</div>
+        <div class="f-status f-deny">⛔ 反向证伪深化 + 立法级实质化</div>
+      </div>
+      <div class="falsifier-row">
+        <div class="f-num">F3</div>
+        <div class="f-cond">市场预期高于真实订单（三阶链条）</div>
+        <div class="f-status f-deny">⛔ 反向证伪硬化（合同 ≠ 预期）</div>
+      </div>
+      <div class="falsifier-row">
+        <div class="f-num">F4</div>
+        <div class="f-cond">算力密度提升放缓，配套需求减弱</div>
+        <div class="f-status f-untriggered">🟢 未触发</div>
+      </div>
+      <div class="falsifier-row">
+        <div class="f-num">F5</div>
+        <div class="f-cond">宏观 dtfp_util 兑现节奏断裂</div>
+        <div class="f-status f-untriggered">🟢 反向证据萌芽</div>
+      </div>
+      <div class="falsifier-row">
+        <div class="f-num">F6</div>
+        <div class="f-cond">二线 GPU cloud 利息覆盖率 &lt;1.5x（候选 → 量化达标）</div>
+        <div class="f-status f-warn">⚠️ 候选监测 → 量化首次满足</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section id="timeline">
+    <div class="section-head">
+      <h2>推进时间线</h2>
+      <p>主要演化节点 · 按时间倒序（最近 6 次）</p>
+      <div class="section-divider"></div>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-date">本周</div>
+        <div class="timeline-body">
+          ⭐ <strong>双 trigger 叠加 + CPI 篮子级兑现 + Falsifier F6 量化达标</strong>。波动率塌缩首次独立触发 + 与上周 AI 市值集中度 trigger 形成叠加；CPI 三年新高 = AI 实物约束通胀宏观兑现；二线 GPU cloud 利息覆盖率量化条件首次满足。一阶 GPU 鱼尾期减仓优先级升级。
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">上周</div>
+        <div class="timeline-body">
+          ⭐ <strong>跨主题共识止损 trigger 首次升级</strong>。AI-linked 股票占 S&P 500 市值 ~45% 创纪录 + Mag 7 capex 极端 dispersion = 集中度极端化变体触发。仪表盘新增 L5 监控变量"AI 市值占比阈值"；一阶 GPU 减仓窗口提醒协议首次端到端闭环验证。
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">上周</div>
+        <div class="timeline-body">
+          <strong>AI 实物约束通胀叙事一周内两阶段跃迁（萌芽 → 主流）</strong>。DRAM ETF 周 +30% / HBM 至 2027 sold out / 服务器内存 YoY 翻倍 = 算力定价函数从二元升级为四元（NVIDIA + Capex + 内存配额 + 电力配额）。AI 通胀成为 H2 CPI 第三大边际驱动。
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">两周前</div>
+        <div class="timeline-body">
+          <strong>二线 GPU cloud 头部公司 Q1 财报</strong>：合同积压历史新高（数年可见性极强） + 利息支出 +100% YoY + GAAP 净亏 = "次级 hyperscaler"叙事确立 + 财务杠杆首次量化（催生候选 F6 Falsifier）。
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">三周前</div>
+        <div class="timeline-body">
+          <strong>Hyperscaler 2026 capex 共识二次上修至 ~$830B</strong>（+$105B 边际，约等于头部公司一年 capex）= "2026 见顶"假设二次否定。市场不再为 capex 规模本身给溢价，"AI 收入半径"接棒"capex 规模"成为新主导因子。
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">月初</div>
+        <div class="timeline-body">
+          <strong>Mag 7 同夜上调 capex 验证完成</strong> + 电力推迟硬数据量化 + 上一轮 L1 判断从"判断"变"数字验证"。先进封装 sold out 至 2026 全年；某代工厂月产能 +271%。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIVACY NOTE -->
+  <div class="privacy-note">
+    <strong>关于本页：</strong>所有判断、演化阶段、Falsifier 状态、信号事实均直接来源于私有的认知引擎 Vault。
+    具体仓位、个股代号、决策日期等敏感细节<strong>不在本页公开</strong>。
+    个股以"角色描述"出现（如"一阶 GPU 龙头"/"先进封装关键环节"），不披露具体代码。
+    本页为<strong>认知记录，不构成投资建议</strong>。
+  </div>
+
+</div>
+
+<footer>
+  <div><strong>AI 基础设施扩张 · 主题动态</strong> · Powered by Cognitive OS</div>
+  <div><a href="index.html" style="color:var(--active);">← 返回投资主题导航</a></div>
+</footer>
+
+</body>
+</html>

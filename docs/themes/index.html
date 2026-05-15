@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>投资主题动态 · 一个正在运转的认知引擎在跟踪什么</title>
+<meta name="description" content="22 个投资主题的判断、演化、Falsifier 状态实时跟踪。Powered by Cognitive OS — 一个为判断而生的工程系统。">
+<style>
+  :root {
+    --sand: #f8f6f2;
+    --sand-mid: #f0ede7;
+    --sand-deep: #e8e4d8;
+    --ink: #1a1a1a;
+    --ink-mid: #4a4a4a;
+    --ink-soft: #777;
+    --ink-ghost: #b0aba0;
+    --border: #e0ddd6;
+    --border-lt: #ece9e2;
+    /* Status colors */
+    --active: #c0805a;
+    --active-bg: #fdf3ed;
+    --active-border: #f0c8a8;
+    --monitor: #5a7aaa;
+    --monitor-bg: #eef1f8;
+    --monitor-border: #c0d0e8;
+    --watch: #888;
+    --watch-bg: #f5f3ee;
+    --watch-border: #d8d4cc;
+    /* Confidence */
+    --conf-high: #2d7a50;
+    --conf-mid: #b08020;
+    --conf-low: #b04040;
+    /* Evolution stages */
+    --stage-E: #88a878;  /* 萌芽 */
+    --stage-A: #c8a050;  /* 加速 */
+    --stage-S: #c87850;  /* 制度化 */
+    --stage-Splus: #b04848;  /* 拥挤 */
+    --stage-B: #883030;  /* 鱼尾 */
+  }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+    background: var(--sand);
+    color: var(--ink);
+    line-height: 1.6;
+    font-size: 14px;
+  }
+  a { text-decoration: none; color: inherit; }
+
+  /* ─── NAV ─── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(248, 246, 242, 0.95);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    height: 54px; padding: 0 40px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-brand {
+    font-size: 13px; font-weight: 700; letter-spacing: -0.01em;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-brand .live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #5a9a6a; animation: pulse 2.4s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .nav-brand span { font-weight: 400; color: var(--ink-soft); margin-left: 4px; }
+  .nav-back {
+    font-size: 11.5px; color: var(--ink-soft);
+    padding: 5px 12px; border: 1px solid var(--border);
+    border-radius: 6px; transition: all 0.15s;
+  }
+  .nav-back:hover { background: #fff; color: var(--ink); border-color: var(--ink-ghost); }
+  @media (max-width: 760px) { nav { padding: 0 20px; } }
+
+  /* ─── PAGE ─── */
+  .page { max-width: 1080px; margin: 0 auto; padding: 0 40px 80px; }
+  @media (max-width: 760px) { .page { padding: 0 20px 60px; } }
+
+  /* ─── HERO ─── */
+  .hero { padding: 64px 0 40px; border-bottom: 1px solid var(--border); margin-bottom: 48px; }
+  .hero-eyebrow {
+    font-size: 11px; letter-spacing: 0.18em; color: var(--ink-ghost);
+    text-transform: uppercase; margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-size: 38px; font-weight: 700; letter-spacing: -0.035em;
+    line-height: 1.15; margin-bottom: 18px;
+  }
+  .hero h1 em { font-style: normal; color: var(--active); }
+  .hero-lead {
+    font-size: 15px; color: var(--ink-mid); max-width: 660px;
+    line-height: 1.75; margin-bottom: 26px;
+  }
+  .hero-lead strong { color: var(--ink); font-weight: 600; }
+  .hero-stats {
+    display: flex; gap: 32px; flex-wrap: wrap;
+    font-size: 12px; color: var(--ink-soft);
+    padding-top: 18px; border-top: 1px dashed var(--border);
+  }
+  .hero-stats .stat strong {
+    display: block; font-size: 24px; color: var(--ink);
+    font-weight: 700; letter-spacing: -0.02em;
+    line-height: 1; margin-bottom: 3px;
+    font-variant-numeric: tabular-nums;
+  }
+  .hero-stats .stat.accent strong { color: var(--active); }
+
+  /* ─── SECTION ─── */
+  section { margin-bottom: 56px; }
+  .section-head {
+    display: flex; align-items: baseline; gap: 14px; margin-bottom: 24px;
+  }
+  .section-head h2 {
+    font-size: 17px; font-weight: 700; letter-spacing: -0.015em;
+  }
+  .section-head p { font-size: 12px; color: var(--ink-ghost); }
+  .section-divider { flex: 1; height: 1px; background: var(--border); }
+
+  /* ─── HIERARCHY TREE ─── */
+  .tree-wrap {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 12px; padding: 22px 26px;
+    font-family: "SF Mono", "Menlo", monospace;
+    font-size: 12px; line-height: 1.85;
+    color: var(--ink-mid);
+    overflow-x: auto;
+  }
+  .tree-wrap .regime { color: var(--ink); font-weight: 700; font-size: 13px; }
+  .tree-wrap .major { color: var(--ink-mid); font-weight: 600; }
+  .tree-wrap .status-active { color: var(--active); font-weight: 600; }
+  .tree-wrap .status-monitor { color: var(--monitor); }
+  .tree-wrap .status-watch { color: var(--watch); }
+  .tree-wrap .conf-h { color: var(--conf-high); }
+  .tree-wrap .conf-m { color: var(--conf-mid); }
+  .tree-wrap .conf-l { color: var(--conf-low); }
+
+  /* ─── ACTIVE CARDS ─── */
+  .active-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 14px;
+  }
+  .topic-card {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 22px;
+    transition: all 0.18s; cursor: pointer;
+    position: relative; overflow: hidden;
+  }
+  .topic-card::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--active);
+  }
+  .topic-card.clickable:hover {
+    border-color: var(--active-border);
+    box-shadow: 0 4px 16px rgba(192, 128, 90, 0.10);
+    transform: translateY(-1px);
+  }
+  .topic-card.disabled {
+    cursor: not-allowed; opacity: 0.78;
+  }
+  .topic-card.disabled::before { background: var(--ink-ghost); }
+  .tc-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 10px; margin-bottom: 12px;
+  }
+  .tc-title {
+    font-size: 15px; font-weight: 700; line-height: 1.3; color: var(--ink);
+  }
+  .tc-conf {
+    font-size: 11px; flex-shrink: 0; padding: 2px 8px;
+    border-radius: 4px; font-weight: 600;
+  }
+  .conf-high-bg { background: #e6f5ec; color: var(--conf-high); }
+  .conf-mid-bg { background: #fdf4dc; color: var(--conf-mid); }
+  .conf-low-bg { background: #fceeec; color: var(--conf-low); }
+  .tc-stage {
+    display: inline-block; font-size: 10.5px; font-weight: 600;
+    padding: 3px 9px; border-radius: 4px; margin-bottom: 12px;
+    letter-spacing: 0.02em;
+  }
+  .stage-E-bg { background: #eaf2e5; color: var(--stage-E); }
+  .stage-A-bg { background: #fdf2e0; color: var(--stage-A); }
+  .stage-S-bg { background: #fde8dc; color: var(--stage-S); }
+  .stage-Splus-bg { background: #fce0e0; color: var(--stage-Splus); }
+  .stage-B-bg { background: #f5d6d6; color: var(--stage-B); }
+  .tc-summary {
+    font-size: 12.5px; color: var(--ink-mid); line-height: 1.6;
+    margin-bottom: 14px;
+  }
+  .tc-summary strong { color: var(--ink); }
+  .tc-foot {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 12px; border-top: 1px dashed var(--border-lt);
+    font-size: 11px; color: var(--ink-ghost);
+  }
+  .tc-link {
+    color: var(--active); font-weight: 600;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .tc-no-link {
+    color: var(--ink-ghost); font-style: italic;
+  }
+
+  /* ─── LIST TABLE ─── */
+  .topic-list {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden;
+  }
+  .topic-row {
+    display: grid; grid-template-columns: 1fr 80px 130px 80px;
+    gap: 14px; padding: 12px 18px;
+    border-bottom: 1px solid var(--border-lt);
+    font-size: 12.5px;
+    align-items: center;
+  }
+  .topic-row:last-child { border-bottom: none; }
+  .topic-row.head {
+    background: var(--sand-mid); color: var(--ink-soft);
+    font-size: 10.5px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .topic-row .name { color: var(--ink); font-weight: 600; }
+  .topic-row .parent { color: var(--ink-ghost); font-size: 11px; }
+  .topic-row .conf { font-weight: 600; font-size: 12px; }
+
+  /* ─── LEGEND ─── */
+  .legend-card {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 10px; padding: 22px 26px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
+  }
+  .legend-card h3 {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--ink-soft); margin-bottom: 12px;
+  }
+  .legend-card dl { font-size: 12px; line-height: 1.7; }
+  .legend-card dt { font-weight: 600; color: var(--ink); display: inline-block; min-width: 100px; }
+  .legend-card dd { display: inline; color: var(--ink-mid); }
+  .legend-card dl > div { padding: 4px 0; border-bottom: 1px dashed var(--border-lt); }
+  .legend-card dl > div:last-child { border-bottom: none; }
+  @media (max-width: 760px) { .legend-card { grid-template-columns: 1fr; } }
+
+  /* ─── PRIVACY BAND ─── */
+  .privacy-band {
+    background: var(--sand-mid); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px 22px; margin-bottom: 56px;
+    font-size: 12px; color: var(--ink-mid); line-height: 1.7;
+  }
+  .privacy-band strong { color: var(--ink); }
+
+  /* ─── CTA ─── */
+  .cta-band {
+    background: #1a1a1a; color: #fff; border-radius: 14px;
+    padding: 32px 38px; margin-bottom: 56px;
+    display: flex; justify-content: space-between; align-items: center; gap: 26px;
+  }
+  .cta-text h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .cta-text p { font-size: 13px; color: #aaa; line-height: 1.6; max-width: 540px; }
+  .cta-btn {
+    padding: 10px 18px; border-radius: 8px; font-size: 12px;
+    font-weight: 600; flex-shrink: 0;
+    background: var(--active); color: #1a1a1a;
+  }
+  .cta-btn:hover { background: #d49570; }
+  @media (max-width: 760px) { .cta-band { flex-direction: column; align-items: flex-start; } }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 26px 40px; max-width: 1080px; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: var(--ink-ghost);
+  }
+  footer strong { color: var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <span class="live-dot"></span>
+    投资主题动态<span>· 每日更新</span>
+  </div>
+  <a href="../index.html" class="nav-back">← 了解引擎本身 · Cognitive OS</a>
+</nav>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">Invest Theme Tracker · Powered by Cognitive OS</div>
+    <h1>22 个主题 · 每天<br>都在被<em>判断、验证、证伪</em></h1>
+    <p class="hero-lead">
+      这不是观点博客，也不是组合追踪器。这是一个<strong>真实运转的投资认知引擎</strong>的实时投影——
+      你能看到每个主题处在什么演化阶段、依赖什么 Falsifier、当前置信度如何、本周触发了什么状态变化。
+      <strong>判断本身，而非结果，是被展示的产品。</strong>
+    </p>
+    <div class="hero-stats">
+      <div class="stat accent"><strong>6</strong>Active 主题</div>
+      <div class="stat"><strong>6</strong>Monitoring</div>
+      <div class="stat"><strong>9</strong>Watch</div>
+      <div class="stat"><strong>22</strong>主题总数</div>
+      <div class="stat"><strong>2</strong>Regime 母题</div>
+    </div>
+  </div>
+
+  <!-- PRIVACY BAND -->
+  <div class="privacy-band">
+    <strong>关于隐私边界：</strong>本站<strong>公开</strong>主题判断、演化阶段、Falsifier 状态、信号事实、协议本身；
+    <strong>不公开</strong>具体仓位、价格、决策日期、个股代号、收益数据。具体标的用角色描述（"一阶 GPU 龙头"/"黄金 ETF"），不披露代号。
+    所有内容为认知记录，<strong>不构成任何投资建议</strong>。
+  </div>
+
+  <!-- HIERARCHY TREE -->
+  <section id="hierarchy">
+    <div class="section-head">
+      <h2>主题层级结构</h2>
+      <p>两个 Regime 母题下的 22 个主题树</p>
+      <div class="section-divider"></div>
+    </div>
+    <div class="tree-wrap">
+<span class="regime">全球秩序重构与真实约束回归 [Regime]</span> <span class="status-watch">— Watch</span> <span class="conf-h">🟢</span>
+├── <span class="major">财政债务主导与政策框架重定价 [Major]</span> <span class="status-monitor">— Monitoring</span> <span class="conf-h">🟢</span>
+│   └── Higher-for-longer 信用与流动性收缩 <span class="status-monitor">— Monitoring</span> <span class="conf-m">🟡</span>
+├── <span class="status-active">★ 法币信用稀释与真实资产重估</span> <span class="status-active">— Active</span> <span class="conf-h">🟢</span>
+├── 真实世界约束回归 <span class="status-watch">— Watch</span> <span class="conf-h">🟢</span>
+└── <span class="major">全球化秩序重构 [Major]</span> <span class="status-watch">— Watch</span> <span class="conf-h">🟢</span>
+    ├── 能源安全秩序重估 <span class="status-watch">— Watch</span> <span class="conf-m">🟡</span>
+    ├── 中美政策分化跨区域配置重估 <span class="status-watch">— Watch</span> <span class="conf-m">🟡</span>
+    └── 地缘能源冲击下的金融危机与经济衰退 <span class="status-active">— Active</span> <span class="conf-m">🟡 0.72</span>
+
+<span class="regime">技术与产业范式升级 [Regime]</span> <span class="status-watch">— Watch</span> <span class="conf-h">🟢</span>
+└── <span class="major">AI 生产力革命 [Major]</span> <span class="status-watch">— Watch</span> <span class="conf-h">🟢</span>
+    ├── <span class="status-active">★ AI 基础设施扩张</span> <span class="status-active">— Active</span> <span class="conf-h">🟢</span>
+    ├── 推理需求与平台层扩张 <span class="status-monitor">— Monitoring</span> <span class="conf-m">🟡</span>
+    ├── 数据中心电力基础设施 <span class="status-active">— Active</span> <span class="conf-h">🟢</span>
+    ├── AI 控制权与分发入口重构 <span class="status-monitor">— Monitoring</span> <span class="conf-m">🟡</span>
+    ├── <span class="major">AI 应用商业化 [Major]</span> <span class="status-watch">— Watch</span> <span class="conf-m">🟡</span>
+    │   ├── AI 吞噬 SaaS <span class="status-monitor">— Monitoring</span> <span class="conf-h">🟢 0.70</span>
+    │   └── 物理 AI <span class="status-active">— Active</span> <span class="conf-l">🔴</span>
+    └── <span class="major">中国 AI 产业 [Major]</span> <span class="status-watch">— Watch</span> <span class="conf-m">🟡</span>
+        ├── 中国 AI 平台与应用入口 <span class="status-monitor">— Monitoring</span> <span class="conf-m">🟡 0.65</span>
+        └── 中国 AI 国产芯片堆栈 <span class="status-active">— Active</span> <span class="conf-m">🟡 0.65</span>
+
+<span style="color:#aaa; font-size:11px;">★ = 本站已上线主题动态页（其他主题陆续上线）</span>
+    </div>
+  </section>
+
+  <!-- ACTIVE THEMES -->
+  <section id="active">
+    <div class="section-head">
+      <h2>🔥 Active 主题（6 个）— 积极跟踪 · 高频更新</h2>
+      <p>仪表盘高频更新 · 信号、演化阶段、Falsifier 状态当日刷新</p>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="active-grid">
+
+      <!-- AI 基础设施扩张 (已上线) -->
+      <a href="ai-infrastructure.html" class="topic-card clickable">
+        <div class="tc-head">
+          <div class="tc-title">AI 基础设施扩张</div>
+          <span class="tc-conf conf-high-bg">🟢 高</span>
+        </div>
+        <span class="tc-stage stage-Splus-bg">拥挤期 S+ · 双 trigger 叠加</span>
+        <p class="tc-summary">
+          一阶 GPU 主情景 Price-In ~82%（鱼尾期减仓优先级"中→高"）；<strong>电力/液冷二阶</strong>仍有赔率；<strong>AI 实物约束通胀</strong>已升至 CPI 篮子级。
+        </p>
+        <div class="tc-foot">
+          <span>父题：AI 生产力革命</span>
+          <span class="tc-link">查看主题页 →</span>
+        </div>
+      </a>
+
+      <!-- 法币信用稀释与真实资产重估 (已上线) -->
+      <a href="fiat-debasement.html" class="topic-card clickable">
+        <div class="tc-head">
+          <div class="tc-title">法币信用稀释与真实资产重估</div>
+          <span class="tc-conf conf-high-bg">🟢 高</span>
+        </div>
+        <span class="tc-stage stage-Splus-bg">拥挤期 S+ 临界推进</span>
+        <p class="tc-summary">
+          主情景 Price-In 推进至 <strong>65-70% 临界</strong>（三 S 级宏观信号叠加：CPI 三年高 + 长端利率突破 + 货币政策框架制度化切换）；70% 阈值临门未越。
+        </p>
+        <div class="tc-foot">
+          <span>父题：全球秩序重构</span>
+          <span class="tc-link">查看主题页 →</span>
+        </div>
+      </a>
+
+      <!-- 地缘能源冲击 -->
+      <div class="topic-card disabled">
+        <div class="tc-head">
+          <div class="tc-title">地缘能源冲击下的金融危机与经济衰退</div>
+          <span class="tc-conf conf-mid-bg">🟡 0.72</span>
+        </div>
+        <span class="tc-stage stage-Splus-bg">拐点观察 + fragility 升级</span>
+        <p class="tc-summary">
+          滞胀对冲 thesis 维持；近期 fragility 升级（外部协议化进程半失效 + 油价回落但供给约束仍硬）；5/14-5/20 关键事件窗口决定 PI 是否完全突破。
+        </p>
+        <div class="tc-foot">
+          <span>父题：全球化秩序重构</span>
+          <span class="tc-no-link">主题页待上线</span>
+        </div>
+      </div>
+
+      <!-- 数据中心电力基础设施 -->
+      <div class="topic-card disabled">
+        <div class="tc-head">
+          <div class="tc-title">数据中心电力基础设施</div>
+          <span class="tc-conf conf-high-bg">🟢 高</span>
+        </div>
+        <span class="tc-stage stage-S-bg">制度化前段 S- 边缘</span>
+        <p class="tc-summary">
+          AI 电力作为通胀第四子分项独立显性化；电力/变压器/配电瓶颈立法级实质化；核能/SMR 路径相对优势继续扩大（研究领先 ✓ 维持）。
+        </p>
+        <div class="tc-foot">
+          <span>父题：AI 生产力革命</span>
+          <span class="tc-no-link">主题页待上线</span>
+        </div>
+      </div>
+
+      <!-- 中国 AI 国产芯片堆栈 -->
+      <div class="topic-card disabled">
+        <div class="tc-head">
+          <div class="tc-title">中国 AI 国产芯片堆栈</div>
+          <span class="tc-conf conf-mid-bg">🟡 0.65</span>
+        </div>
+        <span class="tc-stage stage-S-bg">制度化前段 S- 边缘</span>
+        <p class="tc-summary">
+          国产 AI 芯片量产硬数据兑现；近期触发<strong>短期跳涨暂停建仓协议</strong>（多只标的进入冷却窗口）；下游应用生态分化加深，反向证伪硬化。
+        </p>
+        <div class="tc-foot">
+          <span>父题：中国 AI 产业</span>
+          <span class="tc-no-link">主题页待上线</span>
+        </div>
+      </div>
+
+      <!-- 物理 AI -->
+      <div class="topic-card disabled">
+        <div class="tc-head">
+          <div class="tc-title">物理 AI</div>
+          <span class="tc-conf conf-low-bg">🔴 低</span>
+        </div>
+        <span class="tc-stage stage-A-bg">加速 A 早段</span>
+        <p class="tc-summary">
+          早期叙事 > 兑现；机器人量产路径与自动驾驶并行；Price-In 20-25%，置信度低但研究价值高，作为长期 alpha 候选窗口持续观察。
+        </p>
+        <div class="tc-foot">
+          <span>父题：AI 应用商业化</span>
+          <span class="tc-no-link">主题页待上线</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- MONITORING -->
+  <section id="monitoring">
+    <div class="section-head">
+      <h2>👁️ Monitoring（6 个）— 持续跟踪 · 每周信号扫描</h2>
+      <p>框架已建立，持续跟踪关键验证变量</p>
+      <div class="section-divider"></div>
+    </div>
+    <div class="topic-list">
+      <div class="topic-row head">
+        <div>主题</div>
+        <div>置信度</div>
+        <div>父题</div>
+        <div>状态</div>
+      </div>
+      <div class="topic-row">
+        <div class="name">AI 吞噬 SaaS</div>
+        <div class="conf" style="color:var(--conf-high);">🟢 0.70</div>
+        <div class="parent">AI 应用商业化</div>
+        <div style="color:var(--monitor);">Monitoring</div>
+      </div>
+      <div class="topic-row">
+        <div class="name">AI 控制权与分发入口重构</div>
+        <div class="conf" style="color:var(--conf-mid);">🟡</div>
+        <div class="parent">AI 生产力革命</div>
+        <div style="color:var(--monitor);">Monitoring</div>
+      </div>
+      <div class="topic-row">
+        <div class="name">Higher-for-longer 信用与流动性收缩</div>
+        <div class="conf" style="color:var(--conf-mid);">🟡</div>
+        <div class="parent">财政债务主导</div>
+        <div style="color:var(--monitor);">Monitoring</div>
+      </div>
+      <div class="topic-row">
+        <div class="name">中国 AI 平台与应用入口</div>
+        <div class="conf" style="color:var(--conf-mid);">🟡 0.65</div>
+        <div class="parent">中国 AI 产业</div>
+        <div style="color:var(--monitor);">Monitoring</div>
+      </div>
+      <div class="topic-row">
+        <div class="name">推理需求与平台层扩张</div>
+        <div class="conf" style="color:var(--conf-mid);">🟡</div>
+        <div class="parent">AI 生产力革命</div>
+        <div style="color:var(--monitor);">Monitoring</div>
+      </div>
+      <div class="topic-row">
+        <div class="name">财政债务主导与政策框架重定价</div>
+        <div class="conf" style="color:var(--conf-high);">🟢</div>
+        <div class="parent">全球秩序重构</div>
+        <div style="color:var(--monitor);">Monitoring</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WATCH -->
+  <section id="watch">
+    <div class="section-head">
+      <h2>⏳ Watch（9 个）— 周期性关注</h2>
+      <p>方向存在但触发条件尚未出现，或置信度仍待累积</p>
+      <div class="section-divider"></div>
+    </div>
+    <div class="topic-list">
+      <div class="topic-row head">
+        <div>主题</div>
+        <div>置信度</div>
+        <div>父题</div>
+        <div>状态</div>
+      </div>
+      <div class="topic-row">
+        <div class="name">AI 应用商业化</div>
+        <div class="conf" style="color:var(--conf-mid);">🟡</div>
+        <div class="parent">AI 生产力革命</div>
+        <div style="color:var(--watch);">Watch</div>
+      </div>
+      <div class="topic-row">
+        <div class="name">AI 生产力革命</div>
+        <div class="conf" style="color:var(--conf-high);">🟢</div>
+        <div class="parent">技术与产业范式升级</div>
+        <div style="color:var(--watch);">Watch</div>
+      </div>
+      <div class="topic-row">
+        <div class="name">中国 AI 产业</div>
+        <div class="conf" style="color:var(--conf-mid);">🟡</div>
+        <div class="parent">技术与产业范式升级</div>
+        <div style="color:var(--watch);">Watch</div>
+      </div>
+      <div class="topic-row">
+        <div class="name">中美政策分化跨区域配置重估</div>
+        <div class="conf" style="color:var(--conf-mid);">🟡</div>
+        <div class="parent">全球化秩序重构</div>
+        <div style="color:var(--watch);">Watch</div>
+      </div>
+      <div class="topic-row">
+        <div class="name">全球化秩序重构</div>
+        <div class="conf" style="color:var(--conf-high);">🟢</div>
+        <div class="parent">全球秩序重构</div>
+        <div style="color:var(--watch);">Watch</div>
+      </div>
+      <div class="topic-row">
+        <div class="name">全球秩序重构与真实约束回归</div>
+        <div class="conf" style="color:var(--conf-high);">🟢</div>
+        <div class="parent">（Regime）</div>
+        <div style="color:var(--watch);">Watch</div>
+      </div>
+      <div class="topic-row">
+        <div class="name">技术与产业范式升级</div>
+        <div class="conf" style="color:var(--conf-high);">🟢</div>
+        <div class="parent">（Regime）</div>
+        <div style="color:var(--watch);">Watch</div>
+      </div>
+      <div class="topic-row">
+        <div class="name">真实世界约束回归</div>
+        <div class="conf" style="color:var(--conf-high);">🟢</div>
+        <div class="parent">全球秩序重构</div>
+        <div style="color:var(--watch);">Watch</div>
+      </div>
+      <div class="topic-row">
+        <div class="name">能源安全秩序重估</div>
+        <div class="conf" style="color:var(--conf-mid);">🟡</div>
+        <div class="parent">全球化秩序重构</div>
+        <div style="color:var(--watch);">Watch</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEGEND -->
+  <section id="legend">
+    <div class="section-head">
+      <h2>状态与置信度定义</h2>
+      <p>本站的所有标签都有严格定义</p>
+      <div class="section-divider"></div>
+    </div>
+    <div class="legend-card">
+      <div>
+        <h3>状态定义</h3>
+        <dl>
+          <div><dt>Active</dt>：<dd>机制与框架清晰，积极研究推进中，仪表盘高频更新</dd></div>
+          <div><dt>Monitoring</dt>：<dd>框架已建立，持续跟踪关键验证变量，每周信号扫描覆盖</dd></div>
+          <div><dt>Watch</dt>：<dd>方向存在，但触发条件尚未出现或置信度不足，周期性关注</dd></div>
+        </dl>
+      </div>
+      <div>
+        <h3>置信度说明</h3>
+        <dl>
+          <div><dt>🟢 高</dt>：<dd>机制清晰、叙事成立、基本面有验证</dd></div>
+          <div><dt>🟡 中</dt>：<dd>方向成立但关键变量待确认</dd></div>
+          <div><dt>🔴 低</dt>：<dd>早期观察或高度不确定</dd></div>
+        </dl>
+      </div>
+      <div>
+        <h3>演化阶段（v3.2 单峰曲线）</h3>
+        <dl>
+          <div><dt>萌芽 E</dt>：<dd>Price-In &lt;20%，剩余赔率极大但触发门槛高</dd></div>
+          <div><dt>加速 A</dt>：<dd>30-55%，加仓至赔率最大时窗</dd></div>
+          <div><dt>制度化 S-</dt>：<dd>55-70%，致命一击 / 维持高仓位</dd></div>
+          <div><dt>拥挤期 S+</dt>：<dd>&gt;70%，共识止损 trigger 启动 / 减回二楼</dd></div>
+          <div><dt>鱼尾期 B-</dt>：<dd>&gt;85%，反身性可能反转 / 分批离场</dd></div>
+        </dl>
+      </div>
+      <div>
+        <h3>Falsifier 状态</h3>
+        <dl>
+          <div><dt>✓ 支持</dt>：<dd>新证据进一步支持原判断</dd></div>
+          <div><dt>⚠️ 待复核</dt>：<dd>有反向证据或接近触发条件</dd></div>
+          <div><dt>⛔ 反向证伪深化</dt>：<dd>新证据进一步证伪原假说</dd></div>
+          <div><dt>❌ 已被推翻</dt>：<dd>Falsifier 完全触发，判断需修正或退役</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta-band">
+    <div class="cta-text">
+      <h3>这个站背后的引擎长什么样？</h3>
+      <p>所有判断、演化追踪、Falsifier 协议都来自同一个认知引擎。它的理论根基、核心机制、自动化层都在另一个站独立展开。</p>
+    </div>
+    <a href="../index.html" class="cta-btn">了解 Cognitive OS →</a>
+  </div>
+
+</div>
+
+<footer>
+  <div><strong>投资主题动态</strong> · 一个正在运转的认知引擎在跟踪什么 · Powered by Cognitive OS</div>
+  <div>认知记录 · 不构成投资建议</div>
+</footer>
+
+</body>
+</html>

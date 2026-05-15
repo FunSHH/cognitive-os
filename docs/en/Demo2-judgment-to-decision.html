@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demo 2 — From Judgment to Decision · Cognitive OS</title>
+<style>
+  :root {
+    --sand: #f8f6f2; --sand-mid: #f0ede7;
+    --ink: #1a1a1a; --ink-mid: #4a4a4a; --ink-soft: #777; --ink-ghost: #b0aba0;
+    --border: #e0ddd6; --border-lt: #ece9e2;
+    --amber: #c8a050; --amber-deep: #8a6020; --amber-bg: #fdf6e8; --amber-border: #e8d5a0;
+    --green: #2d7a50; --green-bg: #e6f5ec; --green-border: #b8dcc0;
+    --yellow: #d4a418; --yellow-bg: #fdf4dc;
+    --red: #c04848; --red-bg: #fceeec; --red-border: #f0bcbc;
+    --teal: #2d8a80;
+  }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "Helvetica Neue", "PingFang SC", sans-serif; background: var(--sand); color: var(--ink); line-height: 1.65; font-size: 14px; }
+  a { text-decoration: none; color: inherit; }
+  nav { position: sticky; top: 0; z-index: 100; background: rgba(248,246,242,.95); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); height: 52px; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; }
+  .nav-brand { font-size: 13px; font-weight: 700; }
+  .nav-back { font-size: 11.5px; color: var(--ink-soft); padding: 5px 12px; border: 1px solid var(--border); border-radius: 6px; }
+  .nav-back:hover { color: var(--ink); background: #fff; }
+  .page { max-width: 920px; margin: 0 auto; padding: 0 40px 80px; }
+  .topic-header { padding: 56px 0 36px; border-bottom: 1px solid var(--border); margin-bottom: 36px; }
+  .crumb { font-size: 11px; color: var(--ink-ghost); letter-spacing: .08em; margin-bottom: 14px; }
+  .crumb a { color: var(--amber); }
+  h1 { font-size: 36px; font-weight: 700; letter-spacing: -.025em; line-height: 1.2; margin-bottom: 14px; }
+  h1 em { font-style: normal; color: var(--amber); }
+  .sub { font-size: 15px; color: var(--ink-mid); line-height: 1.7; max-width: 720px; }
+  .sub strong { color: var(--ink); }
+
+  section { margin-bottom: 48px; }
+  .sh { display: flex; align-items: baseline; gap: 14px; margin-bottom: 22px; flex-wrap: wrap; }
+  .sh-tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--amber-bg); color: var(--amber-deep); font-weight: 700; letter-spacing: .04em; }
+  .sh-line { flex: 1; height: 1px; background: var(--border); min-width: 30px; }
+  .sh p { font-size: 12px; color: var(--ink-ghost); }
+
+  .protocol-card { background: #1a1a1a; color: #f0ede0; border-radius: 12px; padding: 26px 30px; margin: 28px 0; }
+  .protocol-meta { font-size: 11px; color: #888; font-family: "SF Mono", monospace; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #333; }
+  .protocol-name { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .protocol-desc { font-size: 13px; color: #aaa; margin-bottom: 18px; line-height: 1.7; }
+  .protocol-trigger { font-size: 12px; color: var(--amber); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 10px; }
+  .protocol-list { list-style: none; padding: 0; margin: 0 0 20px; }
+  .protocol-list li { font-size: 13px; color: #f0ede0; line-height: 1.7; padding: 6px 0 6px 20px; position: relative; }
+  .protocol-list li::before { content: "→"; position: absolute; left: 0; color: var(--amber); font-weight: 700; }
+  .protocol-action { font-size: 13px; color: #6ad498; font-weight: 600; background: rgba(106,212,152,.1); border: 1px solid #2d7a50; padding: 10px 14px; border-radius: 6px; }
+  .protocol-action strong { color: #fff; }
+
+  .paths { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 28px 0; border-radius: 12px; overflow: hidden; background: #fff; border: 1px solid var(--border); }
+  .path { padding: 24px 28px; }
+  .path.left { background: var(--red-bg); border-right: 1px solid var(--red-border); }
+  .path.right { background: var(--green-bg); }
+  .path-tag { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; margin-bottom: 8px; }
+  .path.left .path-tag { color: var(--red); }
+  .path.right .path-tag { color: var(--green); }
+  .path-title { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 14px; line-height: 1.4; }
+  .path-step { font-size: 12.5px; color: var(--ink-mid); padding: 8px 0; border-bottom: 1px dashed rgba(0,0,0,.08); line-height: 1.65; }
+  .path-step:last-child { border-bottom: none; }
+  .path-step strong { color: var(--ink); }
+  .path-step .marker { display: inline-block; width: 18px; font-weight: 700; }
+  .path.left .marker { color: var(--red); }
+  .path.right .marker { color: var(--green); }
+  .path-outcome { margin-top: 14px; padding: 12px 14px; border-radius: 6px; font-size: 12.5px; line-height: 1.6; }
+  .path.left .path-outcome { background: rgba(192,72,72,.12); color: var(--red); }
+  .path.right .path-outcome { background: rgba(45,122,80,.12); color: var(--green); }
+  .path-outcome strong { font-weight: 700; }
+  @media (max-width: 760px) { .paths { grid-template-columns: 1fr; } .path.left { border-right: none; border-bottom: 1px solid var(--red-border); } }
+
+  .loop { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin: 28px 0; }
+  .loop-stages { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+  .loop-stage { background: var(--amber-bg); border: 1px solid var(--amber-border); border-radius: 8px; padding: 14px 12px; text-align: center; position: relative; }
+  .loop-stage::after { content: "→"; position: absolute; right: -16px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--amber-deep); font-weight: 700; }
+  .loop-stage:last-child::after { content: "↻"; right: -10px; color: var(--green); font-size: 22px; }
+  .loop-step-num { display: inline-block; width: 22px; height: 22px; background: var(--amber-deep); color: #fff; border-radius: 50%; line-height: 22px; font-size: 11px; font-weight: 700; margin-bottom: 6px; }
+  .loop-step-name { font-size: 12px; font-weight: 700; color: var(--ink); }
+  .loop-step-desc { font-size: 11px; color: var(--ink-soft); margin-top: 3px; line-height: 1.4; }
+  @media (max-width: 760px) { .loop-stages { grid-template-columns: 1fr 1fr; } .loop-stage::after { display: none; } }
+
+  .diff-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 24px 28px; }
+  .diff-block { padding: 12px 0; border-bottom: 1px dashed var(--border-lt); }
+  .diff-block:last-child { border-bottom: none; }
+  .diff-block h4 { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .diff-block .line { font-family: "SF Mono", monospace; font-size: 12px; line-height: 1.7; padding: 3px 0; }
+  .line.added { background: rgba(45,122,80,.06); color: var(--green); padding-left: 8px; border-left: 2px solid var(--green); }
+  .line.same { color: var(--ink-mid); padding-left: 8px; }
+
+  .punchline { background: #1a1a1a; color: var(--sand); border-radius: 14px; padding: 36px 32px; text-align: center; margin: 40px 0; }
+  .punchline-main { font-size: 24px; font-weight: 700; letter-spacing: -.015em; line-height: 1.45; margin-bottom: 10px; }
+  .punchline-main em { font-style: normal; color: var(--amber); }
+  .punchline-sub { font-size: 13px; color: #aaa; font-style: italic; }
+
+  .privacy-note { background: var(--sand-mid); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; font-size: 11.5px; color: var(--ink-mid); line-height: 1.7; margin: 36px 0 20px; }
+  .privacy-note strong { color: var(--ink); }
+  footer { border-top: 1px solid var(--border); padding: 24px 0; display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-ghost); flex-wrap: wrap; gap: 10px; }
+  footer a { color: var(--amber); }
+  @media (max-width: 760px) { .page { padding: 0 20px 60px; } nav { padding: 0 20px; } h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">Demo 2 · Judgment to Decision</div>
+  <a href="index.html" class="nav-back">← Cognitive OS</a>
+</nav>
+
+<div class="page">
+  <div class="topic-header">
+    <div class="crumb"><a href="index.html">Cognitive OS</a> &nbsp;→&nbsp; Demo 2 &nbsp;→&nbsp; <strong>Judgment to Decision</strong></div>
+    <h1>How judgment<br><em>supports decision</em><br>without being pushed by emotion</h1>
+    <p class="sub">
+      You researched a topic for three months. All your theses verified. One day it suddenly explodes — inner voice says "buy now." You almost did. Then you paused.<br><br>
+      <strong>The real difference isn't how smart AI is. It's whether the rules you wrote when calm are wired into an "auto-scan pipeline" to remind you when emotion takes over.</strong>
+      Below: how a judgment transforms <strong>from static conclusion into executable protocol</strong>.
+    </p>
+  </div>
+
+  <section>
+    <div class="sh"><span class="sh-tag">STARTING POINT · THE PROTOCOL YOU WROTE WHEN CALM</span><div class="sh-line"></div><p>Not AI's idea · A rule you defined for "future-self under emotional pressure"</p></div>
+    <div class="protocol-card">
+      <div class="protocol-meta">07 Methodology / Investment / 05 Implementation / spike-pause-buying-protocol.md</div>
+      <div class="protocol-name">§ 4.5.9 · Emotion-Trigger Pause Protocol</div>
+      <div class="protocol-desc">
+        Origin: a real "almost-FOMO" feedback. When calm, you realized — when you buy on a day the price spikes, you're mostly buying FOMO, not the thesis.<br>
+        Next day, you crystallized that reflex into a named protocol.
+      </div>
+      <div class="protocol-trigger">Trigger conditions (any one fires)</div>
+      <ul class="protocol-list">
+        <li>Single-day gain ≥ 10%</li>
+        <li>5-day cumulative gain ≥ 25%</li>
+        <li>Approaching 52-week high</li>
+        <li>Major catalyst day</li>
+      </ul>
+      <div class="protocol-action">
+        <strong>Action:</strong> Pause buying for 1-3 trading days · Write <code style="color:#aaa;background:#333;padding:1px 5px;border-radius:3px;">latest-spike-event</code> field · Wait for ≥ 8-15% pullback before re-evaluating
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sh"><span class="sh-tag">ONE DAY SIGNAL FIRES · TWO PATHS COEXIST</span><div class="sh-line"></div><p>Same situation · Same you · Two systems = completely different decision paths</p></div>
+
+    <div class="paths">
+      <div class="path left">
+        <div class="path-tag">Without protocolized system</div>
+        <div class="path-title">Emotion-driven decision path</div>
+        <div class="path-step"><span class="marker">①</span><strong>09:30</strong> · Ticker you researched opens with limit-up +10%. Push notifications. Group chats explode.</div>
+        <div class="path-step"><span class="marker">②</span><strong>09:45</strong> · You open the research doc, confirm thesis still holds. "Yes — this is what I said!"</div>
+        <div class="path-step"><span class="marker">③</span><strong>10:00</strong> · Price hits +15%. Someone in group: "just added." FOMO escalates.</div>
+        <div class="path-step"><span class="marker">④</span><strong>10:15</strong> · You buy. "I did the research. The thesis is right."</div>
+        <div class="path-step"><span class="marker">⑤</span><strong>3 days later</strong> · Pullback -12%. "But the thesis is right? Why is it dropping?"</div>
+        <div class="path-outcome">
+          <strong>Problem:</strong> "thesis is right" and "should buy now" are not the same thing. You bought certainty-as-illusion that the current move provided, not the thesis.
+        </div>
+      </div>
+      <div class="path right">
+        <div class="path-tag">With protocolized system</div>
+        <div class="path-title">Protocol-driven decision path</div>
+        <div class="path-step"><span class="marker">①</span><strong>08:00</strong> · Auto-scan finds single-day ≥ 10%. <strong>§ 4.5.9 protocol conditions met</strong>.</div>
+        <div class="path-step"><span class="marker">②</span><strong>08:30</strong> · Synthesis report auto-writes: <code style="font-family:monospace;font-size:11px;background:#eee;padding:1px 4px;border-radius:3px;">latest-spike-event</code> field + "Pause buying 1-3 days" alert.</div>
+        <div class="path-step"><span class="marker">③</span><strong>09:30</strong> · You open screen, see the alert. <strong>Not AI's recommendation — your own rule from when you were calm</strong>.</div>
+        <div class="path-step"><span class="marker">④</span><strong>10:00</strong> · Price hits +15%. You feel "buy now", but <strong>the protocol checklist is right there</strong>. FOMO blocked by a named rule.</div>
+        <div class="path-step"><span class="marker">⑤</span><strong>3 days later</strong> · Pullback -12%. Per protocol: wait for ≥ 8-15% pullback. Cold-window arrives.</div>
+        <div class="path-outcome">
+          <strong>Difference:</strong> the present "buy or not" doesn't require your willpower to fight FOMO. <strong>The rules you wrote when calm made the choice for you</strong>.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sh"><span class="sh-tag">FROM JUDGMENT TO PROTOCOL UPGRADE · COMPLETE LOOP</span><div class="sh-line"></div><p>Decision isn't the end · Feedback re-entering the loop is what makes the system permanently smarter</p></div>
+    <div class="loop">
+      <div class="loop-stages">
+        <div class="loop-stage"><div class="loop-step-num">1</div><div class="loop-step-name">Protocol triggers</div><div class="loop-step-desc">Auto-scan finds condition met</div></div>
+        <div class="loop-stage"><div class="loop-step-num">2</div><div class="loop-step-name">Decision log</div><div class="loop-step-desc">Cognitive snapshot (immutable)</div></div>
+        <div class="loop-stage"><div class="loop-step-num">3</div><div class="loop-step-name">Execute + feedback</div><div class="loop-step-desc">Review against expectation</div></div>
+        <div class="loop-stage"><div class="loop-step-num">4</div><div class="loop-step-name">Protocol upgrade</div><div class="loop-step-desc">Feedback → methodology revised</div></div>
+      </div>
+      <p style="font-size: 12.5px; color: var(--ink-mid); line-height: 1.7; margin-top: 8px;">
+        Every protocol trigger + execution produces feedback into <code style="font-family:monospace;font-size:11px;background:var(--sand-mid);padding:1px 5px;border-radius:3px;">01 Drafts/Feedback/</code>.
+        After distillation this feedback <strong>updates the methodology file</strong> — e.g. if "single-day ≥ 10% combined with fundamental breakthrough" turns out to be a new scenario, the protocol automatically adds a new conditional branch.
+        <strong>The same mistake only happens once.</strong>
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sh"><span class="sh-tag">PROTOCOL UPGRADE · DIFF AFTER FIRST FEEDBACK</span><div class="sh-line"></div><p>Real example: from v3.2.1 to v3.2.2</p></div>
+    <div class="diff-card">
+      <div class="diff-block">
+        <h4>Trigger conditions · protocol diff</h4>
+        <div class="line same">Single-day ≥ 10%</div>
+        <div class="line same">5-day cumulative ≥ 25%</div>
+        <div class="line same">Approaching 52-week high</div>
+        <div class="line same">Major catalyst day</div>
+        <div class="line added">+ <strong>Spike-day accompanied by fundamental breakthrough signal (added in v3.2.2)</strong></div>
+        <div class="line added">+ <strong>Cross-topic consensus-stoploss trigger same-direction stacking (added in v3.2.4)</strong></div>
+      </div>
+      <div class="diff-block">
+        <h4>Trigger actions · protocol diff</h4>
+        <div class="line same">Pause buying 1-3 trading days</div>
+        <div class="line same">Write latest-spike-event field</div>
+        <div class="line added">+ <strong>Extend cooling to 5 days when double-trigger stacked (added in v3.2.4)</strong></div>
+        <div class="line added">+ <strong>Auto reverse-append evidence to all linked Cognition nodes (added in v3.2.4)</strong></div>
+      </div>
+      <p style="font-size: 12px; color: var(--ink-soft); margin-top: 12px; font-style: italic; line-height: 1.6;">
+        The protocol isn't written once and frozen. Every real trigger + feedback makes the rule finer, more accurate, more fitted to <em>your</em> judgment habits.<br>
+        The protocol 90 days from now is not the same rule as the protocol today.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sh"><span class="sh-tag">VS LLM WIKI</span><div class="sh-line"></div><p>Same decision scenario · two systems can give you different things</p></div>
+    <div class="paths">
+      <div class="path left" style="background: var(--sand-mid); border-right-color: var(--border);">
+        <div class="path-tag" style="color: var(--ink-soft);">What LLM Wiki gives you</div>
+        <div class="path-title" style="color: var(--ink);">A continuously updated research synthesis</div>
+        <div class="path-step" style="border-bottom-color: rgba(0,0,0,.05); color: var(--ink-mid);">
+          ✓ When prices jump, LLM Wiki gives you <strong>the latest synthesis of all research, historical precedents, expert views</strong>.
+        </div>
+        <div class="path-step" style="border-bottom-color: rgba(0,0,0,.05); color: var(--ink-mid);">
+          ✓ It would point out "in this scenario markets often reverse", "Expert X says wait for pullback".
+        </div>
+        <div class="path-step" style="border-bottom: none; color: var(--ink-mid);">
+          ✗ But your in-the-moment decision is <strong>still you alone vs FOMO</strong>. More knowledge ≠ more calm.
+        </div>
+        <div class="path-outcome" style="background: rgba(0,0,0,.05); color: var(--ink-mid);">
+          <strong>Missing:</strong> Where is "the protocol I wrote when calm"? Who <strong>pushes it in front of me</strong> when emotion takes over?
+        </div>
+      </div>
+      <div class="path right">
+        <div class="path-tag">What Cognitive OS adds</div>
+        <div class="path-title">A protocol layer that executes rules for you</div>
+        <div class="path-step">
+          ✓ The <strong>§ 4.5.9 protocol</strong> you wrote when calm isn't "reference material" — it's <strong>a program scanning every ticker every day for rule matches</strong>.
+        </div>
+        <div class="path-step">
+          ✓ The moment a condition hits = protocol auto-fires + Synthesis writes "pause buying N days", <strong>visible the instant you open your screen</strong>.
+        </div>
+        <div class="path-step" style="border-bottom: none;">
+          ✓ This isn't AI making the judgment for you. It's <strong>your past self</strong> making the judgment for <strong>your present self</strong> — AI just pushes the rule into view.
+        </div>
+        <div class="path-outcome">
+          <strong>Difference:</strong> LLM Wiki helps you <strong>know more</strong>. Cognitive OS helps you <strong>obey the rules you set for yourself</strong>.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="punchline">
+    <div class="punchline-main">The real moat isn't "not making mistakes"<br>It's <em>"every almost-mistake becomes a protocol"</em></div>
+    <div class="punchline-sub">Same mistake only happens once · That's the compounding of judgment quality</div>
+  </div>
+
+  <div class="privacy-note">
+    <strong>About this Demo:</strong> the dual-path comparison and protocol upgrade diff are abstracted from real methodology evolution. All specific details (ticker codes, position percentages, operation dates) <strong>have been anonymized</strong>. This page demonstrates <strong>how judgment becomes executable protocol and how protocols get upgraded by feedback</strong>, not investment advice.
+  </div>
+
+  <footer>
+    <div><strong>Demo 2 · Judgment to Decision</strong> · Powered by Cognitive OS</div>
+    <div><a href="index.html">← Back to home</a></div>
+  </footer>
+</div>
+</body>
+</html>

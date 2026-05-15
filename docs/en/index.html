@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cognitive OS · An engineering system for judgment</title>
+<meta name="description" content="Cognitive OS — A judgment engine, not a knowledge base. Dual-track Wiki + Falsifier protocol + Feedback loop. The layer above LLM Wiki.">
+<style>
+  :root {
+    --sand: #f8f6f2; --sand-mid: #f0ede7; --sand-deep: #e8e4d8;
+    --ink: #1a1a1a; --ink-mid: #4a4a4a; --ink-soft: #777; --ink-ghost: #b0aba0;
+    --border: #e0ddd6; --border-lt: #ece9e2;
+    --amber: #c8a050; --amber-deep: #8a6020; --amber-bg: #fdf6e8; --amber-border: #e8d5a0;
+    --teal: #2d8a80; --teal-bg: #e8f4f2;
+    --sky: #4a7acc; --sky-bg: #edf1f8;
+    --red: #c04848; --red-bg: #fceeec;
+    --slate: #8a8478;
+  }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, "Helvetica Neue", "PingFang SC", sans-serif;
+    background: var(--sand); color: var(--ink); line-height: 1.6; font-size: 14px;
+  }
+  a { text-decoration: none; color: inherit; }
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(248, 246, 242, 0.94); backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border); padding: 0 40px; height: 52px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-brand { font-size: 13px; font-weight: 700; letter-spacing: -0.01em; }
+  .nav-brand span { font-weight: 400; color: var(--ink-soft); margin-left: 6px; }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-links { display: flex; gap: 22px; }
+  .nav-links a { font-size: 12px; color: var(--ink-soft); transition: color 0.15s; }
+  .nav-links a:hover { color: var(--ink); }
+  .lang-switch {
+    font-size: 11.5px; color: var(--ink-soft); padding: 4px 10px;
+    border: 1px solid var(--border); border-radius: 6px;
+  }
+  .lang-switch:hover { background: #fff; color: var(--ink); }
+  @media (max-width: 760px) { .nav-links { display: none; } nav { padding: 0 20px; } }
+
+  .page { max-width: 960px; margin: 0 auto; padding: 0 40px 80px; }
+  section { margin-bottom: 80px; }
+  @media (max-width: 760px) { .page { padding: 0 20px 60px; } section { margin-bottom: 56px; } }
+
+  .hero { padding: 90px 0 60px; text-align: center; }
+  .hero-name {
+    font-size: 15px; font-weight: 700; letter-spacing: 0.04em;
+    color: var(--amber-deep); margin-bottom: 18px;
+  }
+  .hero-name .dot { color: var(--ink-ghost); margin: 0 8px; }
+  .hero h1 {
+    font-size: 56px; font-weight: 700; letter-spacing: -0.04em;
+    line-height: 1.05; margin-bottom: 28px; color: var(--ink);
+  }
+  .hero h1 em { font-style: normal; color: var(--amber); }
+  .hero h1 .strike { color: var(--ink-ghost); text-decoration: line-through; text-decoration-thickness: 3px; }
+  .hero-tagline {
+    font-size: 17px; font-weight: 500; color: var(--ink-mid);
+    max-width: 720px; margin: 0 auto 36px; line-height: 1.7;
+  }
+  .hero-tagline strong { color: var(--ink); font-weight: 600; }
+  .hero-quote {
+    display: inline-block; font-style: italic;
+    font-size: 17px; color: var(--ink-mid);
+    padding: 14px 28px; border-left: 3px solid var(--amber);
+    text-align: left; max-width: 560px; line-height: 1.7;
+  }
+  .hero-llm-wiki-note {
+    margin-top: 28px; font-size: 12.5px; color: var(--ink-soft);
+    max-width: 660px; margin-left: auto; margin-right: auto; line-height: 1.7;
+  }
+  .hero-llm-wiki-note strong { color: var(--ink); }
+  .hero-llm-wiki-note .accent { color: var(--amber-deep); font-weight: 600; }
+  @media (max-width: 760px) { .hero h1 { font-size: 38px; } .hero-tagline { font-size: 15px; } }
+
+  .kh { text-align: center; margin-bottom: 36px; }
+  .kh-eyebrow {
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--ink-ghost); margin-bottom: 12px; font-weight: 600;
+  }
+  .kh h2 {
+    font-size: 32px; font-weight: 700; letter-spacing: -0.025em;
+    line-height: 1.25; margin-bottom: 14px;
+  }
+  .kh h2 em { font-style: normal; color: var(--amber); }
+  .kh-sub { font-size: 15px; color: var(--ink-soft); max-width: 640px; margin: 0 auto; }
+  .kh-sub strong { color: var(--ink-mid); }
+  @media (max-width: 760px) { .kh h2 { font-size: 24px; } }
+
+  .punchline { background: #1a1a1a; color: var(--sand); border-radius: 14px; padding: 48px 36px; text-align: center; margin: 36px 0; }
+  .punchline-main { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.3; margin-bottom: 14px; }
+  .punchline-main em { font-style: normal; color: var(--amber); }
+  .punchline-sub { font-size: 14px; color: #aaa; font-style: italic; }
+  @media (max-width: 760px) { .punchline-main { font-size: 22px; } }
+
+  .figure { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 32px; margin: 24px 0; overflow: hidden; }
+  .figure svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+  .figure-caption { margin-top: 18px; font-size: 12px; color: var(--ink-soft); text-align: center; font-style: italic; }
+
+  .diff-table { background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-top: 24px; }
+  .diff-row { display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid var(--border-lt); padding: 18px 24px; gap: 24px; align-items: start; }
+  .diff-row:last-child { border-bottom: none; }
+  .diff-row.head { background: var(--sand-mid); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); font-weight: 700; }
+  .diff-tool { font-weight: 700; color: var(--ink); font-size: 14px; }
+  .diff-tool small { display: block; font-size: 11px; color: var(--ink-soft); font-weight: 400; margin-top: 3px; }
+  .diff-text { font-size: 13px; color: var(--ink-mid); line-height: 1.65; }
+  .diff-text strong { color: var(--amber-deep); }
+  .diff-text .them { display: block; color: var(--ink-soft); font-size: 12px; margin-bottom: 5px; }
+  .diff-text .them::before { content: "Them: "; font-weight: 600; color: var(--ink-ghost); }
+  .diff-text .us::before { content: "Cognitive OS: "; font-weight: 700; color: var(--amber-deep); margin-right: 4px; }
+
+  .scenarios-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .scenario-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 26px; position: relative; }
+  .scenario-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--amber); }
+  .scenario-tag { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--amber-deep); margin-bottom: 8px; font-weight: 700; }
+  .scenario-title { font-size: 17px; font-weight: 700; margin-bottom: 14px; line-height: 1.35; }
+  .scenario-flow { font-size: 12.5px; color: var(--ink-mid); line-height: 1.7; margin-bottom: 16px; }
+  .scenario-flow strong { color: var(--ink); }
+  .scenario-diff { background: var(--amber-bg); border: 1px solid var(--amber-border); border-radius: 8px; padding: 10px 12px; font-size: 11.5px; color: var(--ink-mid); line-height: 1.6; }
+  .scenario-diff strong { color: var(--amber-deep); }
+  @media (max-width: 760px) { .scenarios-grid { grid-template-columns: 1fr; } }
+
+  .mech-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .mech-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 26px; }
+  .mech-num { display: inline-block; width: 36px; height: 36px; border-radius: 50%; background: var(--amber-bg); color: var(--amber-deep); text-align: center; line-height: 36px; font-weight: 700; font-size: 15px; margin-bottom: 14px; }
+  .mech-title { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+  .mech-desc { font-size: 13px; color: var(--ink-mid); line-height: 1.7; }
+  .mech-desc strong { color: var(--ink); }
+  @media (max-width: 760px) { .mech-grid { grid-template-columns: 1fr; } }
+
+  .schema-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 28px; display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px; }
+  .schema-code { background: #1a1a1a; color: #f0ede0; border-radius: 8px; padding: 18px 22px; font-family: "SF Mono", "Menlo", monospace; font-size: 12px; line-height: 1.8; overflow-x: auto; }
+  .schema-code .key { color: var(--amber); }
+  .schema-code .val { color: #f0ede0; }
+  .schema-code .yellow { color: var(--amber); font-weight: 700; }
+  .schema-code .green { color: #6ad498; font-weight: 700; }
+  .schema-code .red { color: #ff7878; font-weight: 700; }
+  .schema-code .comment { color: #888; }
+  .schema-points { list-style: none; padding: 0; }
+  .schema-points li { font-size: 12.5px; color: var(--ink-mid); padding: 8px 0 8px 18px; position: relative; border-bottom: 1px dashed var(--border-lt); line-height: 1.6; }
+  .schema-points li:last-child { border-bottom: none; }
+  .schema-points li::before { content: "→"; position: absolute; left: 0; color: var(--amber); font-weight: 700; }
+  .schema-points strong { color: var(--ink); }
+  @media (max-width: 760px) { .schema-card { grid-template-columns: 1fr; } }
+
+  .layer-stack { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 22px; }
+  .layer { display: grid; grid-template-columns: 90px 1fr; gap: 16px; padding: 10px 14px; border-radius: 6px; align-items: center; }
+  .layer + .layer { margin-top: 6px; }
+  .layer .lnum { font-family: "SF Mono", monospace; font-size: 12px; font-weight: 700; color: var(--ink-soft); }
+  .layer .lname { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .layer .lname small { display: block; font-size: 11.5px; color: var(--ink-soft); font-weight: 400; margin-top: 2px; }
+  .layer.l-sys { background: #1a1a1a; }
+  .layer.l-sys .lnum, .layer.l-sys .lname { color: #f0ede0; }
+  .layer.l-sys .lname small { color: #aaa; }
+  .layer.l0 { background: #fdf3ed; }
+  .layer.l1 { background: var(--amber-bg); }
+  .layer.l2 { background: #f3eef8; }
+  .layer.l3 { background: var(--sky-bg); }
+  .layer.l4 { background: #fceaea; }
+  .layer.l5 { background: #e6f5ec; }
+  .layer.l6 { background: #fdf6e0; }
+  .layer.l7 { background: #f3eaf8; }
+
+  .series-card { background: linear-gradient(135deg, #fff 0%, var(--amber-bg) 100%); border: 1px solid var(--amber-border); border-radius: 14px; padding: 36px 40px; display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: center; }
+  .ep-badge { display: inline-block; background: var(--amber-deep); color: #fff; font-size: 11px; padding: 3px 10px; border-radius: 4px; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 12px; }
+  .series-title { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.3; margin-bottom: 12px; }
+  .series-thesis { font-size: 14px; color: var(--ink-mid); line-height: 1.7; max-width: 600px; }
+  .series-cta { display: inline-flex; align-items: center; gap: 6px; padding: 12px 22px; background: var(--amber); color: #1a1a1a; font-weight: 600; font-size: 13px; border-radius: 8px; white-space: nowrap; }
+  .series-cta:hover { background: var(--amber-deep); color: #fff; }
+  @media (max-width: 760px) { .series-card { grid-template-columns: 1fr; padding: 28px; } }
+
+  .demo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .demo-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: all 0.15s; }
+  .demo-card:hover { border-color: var(--sky); box-shadow: 0 4px 16px rgba(74,122,204,.10); transform: translateY(-2px); }
+  .demo-head { padding: 18px 22px 14px; border-bottom: 1px solid var(--border-lt); background: var(--sky-bg); }
+  .demo-num { font-size: 10px; letter-spacing: 0.1em; color: var(--sky); text-transform: uppercase; font-weight: 700; margin-bottom: 6px; }
+  .demo-title { font-size: 17px; font-weight: 700; color: var(--ink); margin-bottom: 5px; }
+  .demo-sub { font-size: 12px; color: var(--ink-soft); }
+  .demo-body { padding: 16px 22px; font-size: 12.5px; color: var(--ink-mid); line-height: 1.7; }
+  .demo-foot { padding: 12px 22px; border-top: 1px solid var(--border-lt); }
+  .demo-link { color: var(--sky); font-weight: 600; font-size: 12px; }
+  @media (max-width: 760px) { .demo-grid { grid-template-columns: 1fr; } }
+
+  .cta-band { background: #1a1a1a; color: #fff; border-radius: 14px; padding: 40px 44px; text-align: center; }
+  .cta-band h3 { font-size: 22px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.02em; }
+  .cta-band p { font-size: 14px; color: #aaa; line-height: 1.7; margin-bottom: 22px; max-width: 540px; margin-left: auto; margin-right: auto; }
+  .cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .cta-btn { padding: 11px 22px; border-radius: 8px; font-size: 13px; font-weight: 600; transition: all 0.15s; }
+  .cta-btn.primary { background: var(--amber); color: #1a1a1a; }
+  .cta-btn.primary:hover { background: #d8b060; }
+  .cta-btn.ghost { background: transparent; color: #fff; border: 1px solid #444; }
+  .cta-btn.ghost:hover { background: #2a2a2a; }
+
+  footer { border-top: 1px solid var(--border); padding: 26px 40px; max-width: 960px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--ink-ghost); }
+  footer strong { color: var(--ink-soft); }
+  @media (max-width: 760px) { footer { padding: 26px 20px; flex-direction: column; gap: 8px; } .cta-band { padding: 28px 24px; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">Cognitive OS<span>· An engineering system for judgment</span></div>
+  <div class="nav-right">
+    <div class="nav-links">
+      <a href="#thesis">Thesis</a>
+      <a href="#history">History</a>
+      <a href="#vs-others">Vs Others</a>
+      <a href="#subject">Subject</a>
+      <a href="#loop">Loop</a>
+      <a href="#scenarios">Scenarios</a>
+      <a href="#engine">Engine</a>
+      <a href="#demos">Demos</a>
+    </div>
+    <a href="../index.html" class="lang-switch">中文 →</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-name">Cognitive OS <span class="dot">·</span> A judgment engine</div>
+    <h1>An engineering system<br>for <em>judgment</em>,<br>not knowledge</h1>
+    <p class="hero-tagline">
+      As LLMs commoditize knowledge, <strong>storage is no longer scarce</strong>.<br>
+      Continuing to compete on "remember more" is fighting LLMs on their strongest ground.<br>
+      This does something else — <strong>it builds engineering infrastructure for judgment itself.</strong>
+    </p>
+    <div class="hero-quote">
+      Most people use AI as an accelerator. I use AI as a cognitive partner.<br>
+      The former gets you increasingly dependent. The latter gets you increasingly stronger.
+    </div>
+    <div class="hero-llm-wiki-note">
+      If <strong>Karpathy's LLM Wiki</strong> is "let the LLM <strong>maintain your knowledge</strong>",<br>
+      Cognitive OS is the <span class="accent">layer above —</span> "let the LLM <span class="accent">maintain your judgments</span>".
+    </div>
+  </div>
+
+  <!-- THESIS -->
+  <section id="thesis">
+    <div class="kh">
+      <div class="kh-eyebrow">CORE THESIS</div>
+      <h2>Your knowledge management system<br>stops at the <em>Knowledge layer</em></h2>
+      <p class="kh-sub">Information value has four layers. Judgment, value, and meaning emerge at the top — but all tools cap out at Knowledge.</p>
+    </div>
+
+    <div class="figure">
+      <svg viewBox="0 0 700 420" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="280,40 420,40 460,120 240,120" fill="#fdf6e8" stroke="#c8a050" stroke-width="2"/>
+        <text x="350" y="78" text-anchor="middle" font-size="22" font-weight="700" fill="#8a6020">Wisdom</text>
+        <text x="350" y="100" text-anchor="middle" font-size="11" fill="#8a6020">Judgment emerges here</text>
+
+        <polygon points="240,120 460,120 500,200 200,200" fill="#fff" stroke="#c8c0a8" stroke-width="2"/>
+        <text x="350" y="158" text-anchor="middle" font-size="18" font-weight="700" fill="#4a4a4a">Knowledge</text>
+        <text x="350" y="180" text-anchor="middle" font-size="11" fill="#777">Patterns / frameworks</text>
+
+        <polygon points="200,200 500,200 540,280 160,280" fill="#fff" stroke="#c8c0a8" stroke-width="2"/>
+        <text x="350" y="238" text-anchor="middle" font-size="16" font-weight="600" fill="#4a4a4a">Information</text>
+        <text x="350" y="258" text-anchor="middle" font-size="11" fill="#777">Structured / connected</text>
+
+        <polygon points="160,280 540,280 580,360 120,360" fill="#fff" stroke="#c8c0a8" stroke-width="2"/>
+        <text x="350" y="318" text-anchor="middle" font-size="15" font-weight="600" fill="#777">Data</text>
+        <text x="350" y="338" text-anchor="middle" font-size="11" fill="#999">Raw signals</text>
+
+        <line x1="180" y1="115" x2="520" y2="115" stroke="#c04848" stroke-width="2" stroke-dasharray="6,4"/>
+        <text x="528" y="120" font-size="11" fill="#c04848" font-weight="700">⚠ Tools cap here</text>
+
+        <text x="350" y="20" text-anchor="middle" font-size="11" fill="#8a6020" font-weight="600" letter-spacing="0.08em">SUBJECT EMERGES HERE ↑</text>
+        <text x="100" y="160" text-anchor="end" font-size="11" fill="#4a7acc" font-weight="600">LLMs are taking</text>
+        <text x="100" y="175" text-anchor="end" font-size="11" fill="#4a7acc">this layer ↓</text>
+        <line x1="105" y1="170" x2="160" y2="170" stroke="#4a7acc" stroke-width="1" stroke-dasharray="3,3"/>
+      </svg>
+      <div class="figure-caption">DIKW pyramid — every knowledge management tool stops at the line under Knowledge</div>
+    </div>
+
+    <div class="punchline">
+      <div class="punchline-main">The moat is <em>Judgment</em>,<br>not Knowledge</div>
+      <div class="punchline-sub">LLMs make one layer cheap. The other layer becomes valuable.</div>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section id="history">
+    <div class="kh">
+      <div class="kh-eyebrow">80 YEARS HISTORY</div>
+      <h2>80 years passed.<br>The line <em>has never been broken</em></h2>
+      <p class="kh-sub">From Memex to LLM Wiki — tools got stronger, but all stop at the Knowledge layer.</p>
+    </div>
+
+    <div class="figure">
+      <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg">
+        <line x1="60" y1="200" x2="660" y2="200" stroke="#c8c0a8" stroke-width="1.5"/>
+        <line x1="40" y1="80" x2="680" y2="80" stroke="#c04848" stroke-width="2" stroke-dasharray="8,5"/>
+        <text x="40" y="70" font-size="11" fill="#c04848" font-weight="700" letter-spacing="0.06em">━━ Wisdom ceiling · Untouched for 80 years ━━</text>
+
+        <circle cx="120" cy="200" r="8" fill="#8a6020" stroke="#fff" stroke-width="2"/>
+        <text x="120" y="225" text-anchor="middle" font-size="11" fill="#8a6020" font-weight="700">1945</text>
+        <text x="120" y="245" text-anchor="middle" font-size="13" fill="#1a1a1a" font-weight="700">Memex</text>
+        <text x="120" y="262" text-anchor="middle" font-size="10" fill="#777">External brain</text>
+        <line x1="120" y1="195" x2="120" y2="120" stroke="#c8c0a8" stroke-width="1" stroke-dasharray="3,3"/>
+        <circle cx="120" cy="120" r="4" fill="#c8c0a8"/>
+        <text x="120" y="105" text-anchor="middle" font-size="10" fill="#999">stopped</text>
+
+        <circle cx="240" cy="200" r="8" fill="#8a6020" stroke="#fff" stroke-width="2"/>
+        <text x="240" y="225" text-anchor="middle" font-size="11" fill="#8a6020" font-weight="700">1960s</text>
+        <text x="240" y="245" text-anchor="middle" font-size="13" fill="#1a1a1a" font-weight="700">Zettelkasten</text>
+        <text x="240" y="262" text-anchor="middle" font-size="10" fill="#777">Atomic notes</text>
+        <line x1="240" y1="195" x2="240" y2="135" stroke="#c8c0a8" stroke-width="1" stroke-dasharray="3,3"/>
+        <circle cx="240" cy="135" r="4" fill="#c8c0a8"/>
+        <text x="240" y="120" text-anchor="middle" font-size="10" fill="#999">stopped</text>
+
+        <circle cx="360" cy="200" r="8" fill="#8a6020" stroke="#fff" stroke-width="2"/>
+        <text x="360" y="225" text-anchor="middle" font-size="11" fill="#8a6020" font-weight="700">2000s</text>
+        <text x="360" y="245" text-anchor="middle" font-size="13" fill="#1a1a1a" font-weight="700">Evergreen Notes</text>
+        <text x="360" y="262" text-anchor="middle" font-size="10" fill="#777">Concept-driven</text>
+        <line x1="360" y1="195" x2="360" y2="140" stroke="#c8c0a8" stroke-width="1" stroke-dasharray="3,3"/>
+        <circle cx="360" cy="140" r="4" fill="#c8c0a8"/>
+        <text x="360" y="125" text-anchor="middle" font-size="10" fill="#999">stopped</text>
+
+        <circle cx="480" cy="200" r="8" fill="#8a6020" stroke="#fff" stroke-width="2"/>
+        <text x="480" y="225" text-anchor="middle" font-size="11" fill="#8a6020" font-weight="700">2010s+</text>
+        <text x="480" y="245" text-anchor="middle" font-size="13" fill="#1a1a1a" font-weight="700">Notion / Obsidian</text>
+        <text x="480" y="262" text-anchor="middle" font-size="10" fill="#777">Object. vs Subj.</text>
+        <line x1="480" y1="195" x2="480" y2="145" stroke="#c8c0a8" stroke-width="1" stroke-dasharray="3,3"/>
+        <circle cx="480" cy="145" r="4" fill="#c8c0a8"/>
+        <text x="480" y="130" text-anchor="middle" font-size="10" fill="#999">stopped</text>
+
+        <circle cx="600" cy="200" r="10" fill="#c8a050" stroke="#fff" stroke-width="2"/>
+        <text x="600" y="225" text-anchor="middle" font-size="11" fill="#8a6020" font-weight="700">2023+</text>
+        <text x="600" y="245" text-anchor="middle" font-size="13" fill="#1a1a1a" font-weight="700">LLM Wiki</text>
+        <text x="600" y="262" text-anchor="middle" font-size="10" fill="#777">AI maintains</text>
+        <line x1="600" y1="195" x2="600" y2="115" stroke="#c8c0a8" stroke-width="1" stroke-dasharray="3,3"/>
+        <circle cx="600" cy="115" r="4" fill="#c04848"/>
+        <text x="600" y="100" text-anchor="middle" font-size="10" fill="#c04848" font-weight="600">still stopped</text>
+
+        <text x="360" y="305" text-anchor="middle" font-size="12" fill="#777" font-style="italic">Every milestone — capped at the same ceiling</text>
+      </svg>
+      <div class="figure-caption">80 years of knowledge management — 5 generations, 1 ceiling</div>
+    </div>
+  </section>
+
+  <!-- VS OTHERS -->
+  <section id="vs-others">
+    <div class="kh">
+      <div class="kh-eyebrow">VS COMPETITORS</div>
+      <h2>What they do · <em>what we add</em></h2>
+      <p class="kh-sub">7 competing patterns — most important is the relationship with <strong>LLM Wiki</strong></p>
+    </div>
+    <div class="diff-table">
+      <div class="diff-row head">
+        <div>Competitor</div>
+        <div>Their ceiling · What Cognitive OS adds</div>
+      </div>
+      <div class="diff-row" style="background: var(--amber-bg); border-left: 3px solid var(--amber);">
+        <div class="diff-tool"><strong style="color: var(--amber-deep);">LLM Wiki (Karpathy 2026)</strong><small>LLM-maintained markdown wiki</small></div>
+        <div class="diff-text">
+          <div class="them">Automates "maintaining knowledge" — solves the maintenance burden that kills human wikis. But stops at the <strong>Knowledge layer (DIKW L3)</strong>.</div>
+          <div class="us"><strong>One layer up — Wisdom (DIKW L4)</strong>. Maintains not facts but <strong>judgments</strong> (with confidence + falsifiers + evidence chain). LLM Wiki compounds knowledge density. Cognitive OS compounds <strong>judgment quality</strong>. <strong>The two stack</strong> — use LLM Wiki as the Knowledge layer underneath, Cognitive OS adds Cognition + Methodology layers on top.</div>
+        </div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-tool">Obsidian / Logseq<small>Local notes + bidirectional links</small></div>
+        <div class="diff-text">
+          <div class="them">Networks external knowledge, stops at the Knowledge layer</div>
+          <div class="us"><strong>Dual-track Wiki</strong> — Knowledge (external) and Cognition (your judgments) maintained on separate tracks. Judgments have confidence + Falsifiers.</div>
+        </div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-tool">Notion / AnyType<small>Block editor + databases</small></div>
+        <div class="diff-text">
+          <div class="them">Structured container, but content is static</div>
+          <div class="us"><strong>Daily heartbeat</strong> — 5 scheduled tasks running every day: signal scan, change scan, distillation, lint, sync. The vault has a pulse.</div>
+        </div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-tool">Mem / Heptabase<small>AI summaries + cards</small></div>
+        <div class="diff-text">
+          <div class="them">AI organizes memory, but conclusions have no schema, no evidence</div>
+          <div class="us"><strong>Strong schema</strong> — every judgment carries required fields: domain / layer / confidence / evidence / falsifiers / methodology.</div>
+        </div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-tool">Roam / Tana<small>Outliner + knowledge graph</small></div>
+        <div class="diff-text">
+          <div class="them">Relationship network, but lacks "judgment" and "feedback"</div>
+          <div class="us"><strong>Reverse-update protocol</strong> — practice feedback → methodology upgrade → automatic evidence backfill to all related judgment nodes.</div>
+        </div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-tool">Building a Second Brain<small>PARA methodology</small></div>
+        <div class="diff-text">
+          <div class="them">Classification + progressive summarization, stops at "content recycling"</div>
+          <div class="us"><strong>Eight-layer closed loop</strong> — Inbox → Drafts → Knowledge × Cognition → Topics → Action → Decision log → Feedback → Methodology.</div>
+        </div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-tool">ChatGPT memory / Claude Project<small>LLM contextual memory</small></div>
+        <div class="diff-text">
+          <div class="them">Memory lives in AI's hands — you can't see or modify it</div>
+          <div class="us"><strong>Subject restoration</strong> — single source of truth lives on user side. AI is a collaborator, not the owner.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUBJECT -->
+  <section id="subject">
+    <div class="kh">
+      <div class="kh-eyebrow">SUBJECT-AWARE</div>
+      <h2>Tools can manage knowledge<br>but not <em>"whose"</em> judgment</h2>
+      <p class="kh-sub">Breaking the ceiling requires: the subject in the room.</p>
+    </div>
+
+    <div class="figure">
+      <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg">
+        <rect x="40" y="40" width="290" height="240" rx="10" fill="#edf1f8" stroke="#b8cce0" stroke-width="2"/>
+        <text x="185" y="72" text-anchor="middle" font-size="16" font-weight="700" fill="#2a4a7a">Knowledge</text>
+        <text x="185" y="92" text-anchor="middle" font-size="11" fill="#4a7acc">Exists objectively, no subject required</text>
+        <text x="60" y="125" font-size="13" fill="#2a4a7a" font-weight="600">✓ Codable · storable · searchable</text>
+        <text x="60" y="155" font-size="13" fill="#2a4a7a" font-weight="600">✓ Copyable · transferable · reusable</text>
+        <text x="60" y="185" font-size="13" fill="#2a4a7a" font-weight="600">✓ Not dependent on "who" is present</text>
+        <text x="60" y="215" font-size="13" fill="#2a4a7a" font-weight="600">✓ Where AI naturally excels</text>
+        <text x="185" y="255" text-anchor="middle" font-size="12" fill="#4a7acc" font-style="italic">→ Taken over by LLMs</text>
+
+        <text x="360" y="170" text-anchor="middle" font-size="42" font-weight="700" fill="#c8a050">≠</text>
+
+        <rect x="390" y="40" width="290" height="240" rx="10" fill="#fdf6e8" stroke="#e8d5a0" stroke-width="2"/>
+        <text x="535" y="72" text-anchor="middle" font-size="16" font-weight="700" fill="#8a6020">Cognition</text>
+        <text x="535" y="92" text-anchor="middle" font-size="11" fill="#c8a050">Must attach to a subject. Without "who", it doesn't exist.</text>
+        <text x="410" y="125" font-size="13" fill="#8a6020" font-weight="600">✗ Cannot be fully codified</text>
+        <text x="410" y="155" font-size="13" fill="#8a6020" font-weight="600">✗ Cannot be stored independently</text>
+        <text x="410" y="185" font-size="13" fill="#8a6020" font-weight="600">? "Whose" judgment? "Whose" taste?</text>
+        <text x="410" y="215" font-size="13" fill="#8a6020" font-weight="600">! Only you can iterate this part</text>
+        <text x="535" y="255" text-anchor="middle" font-size="12" fill="#c8a050" font-style="italic">→ This is your moat</text>
+      </svg>
+      <div class="figure-caption">Subject-aware principle — AI solves the left, only you can do the right</div>
+    </div>
+
+    <div class="punchline">
+      <div class="punchline-main">Wisdom requires<br>the <em>"subject"</em> to be present</div>
+      <div class="punchline-sub">That's why every tool stops at the ceiling</div>
+    </div>
+  </section>
+
+  <!-- LOOP -->
+  <section id="loop">
+    <div class="kh">
+      <div class="kh-eyebrow">EXTERNALIZE × INTERNALIZE</div>
+      <h2>Cognitive depth isn't time logged<br>it's <em>iteration count</em></h2>
+      <p class="kh-sub">Time itself doesn't compound. The number of cycles determines depth.</p>
+    </div>
+
+    <div class="figure">
+      <svg viewBox="0 0 720 340" xmlns="http://www.w3.org/2000/svg">
+        <rect x="200" y="20" width="320" height="100" rx="14" fill="#f3eef8" stroke="#dcc8e8" stroke-width="2"/>
+        <text x="360" y="50" text-anchor="middle" font-size="18" font-weight="700" fill="#5a2a7a">Cognition</text>
+        <text x="360" y="72" text-anchor="middle" font-size="11" fill="#7a5aa8" letter-spacing="0.08em">TACIT</text>
+        <text x="360" y="95" text-anchor="middle" font-size="12" fill="#5a2a7a">Intuition · judgment · values · taste · frameworks</text>
+
+        <path d="M 250 130 Q 200 175 250 220" fill="none" stroke="#c8a050" stroke-width="2.5" marker-end="url(#arrowL)"/>
+        <text x="200" y="180" text-anchor="middle" font-size="13" font-weight="700" fill="#8a6020">Externalize</text>
+
+        <path d="M 470 220 Q 520 175 470 130" fill="none" stroke="#2d8a80" stroke-width="2.5" marker-end="url(#arrowR)"/>
+        <text x="520" y="180" text-anchor="middle" font-size="13" font-weight="700" fill="#2d8a80">Internalize</text>
+
+        <rect x="200" y="230" width="320" height="100" rx="14" fill="#fdf6e8" stroke="#e8d5a0" stroke-width="2"/>
+        <text x="360" y="260" text-anchor="middle" font-size="18" font-weight="700" fill="#8a6020">System</text>
+        <text x="360" y="282" text-anchor="middle" font-size="11" fill="#c8a050" letter-spacing="0.08em">EXPLICIT</text>
+        <text x="360" y="305" text-anchor="middle" font-size="12" fill="#8a6020">Notes · judgments · methodology · retrospectives</text>
+
+        <defs>
+          <marker id="arrowL" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#c8a050"/>
+          </marker>
+          <marker id="arrowR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#2d8a80"/>
+          </marker>
+        </defs>
+
+        <text x="700" y="50" text-anchor="end" font-size="11" fill="#777">↻ Surface tacit judgments</text>
+        <text x="700" y="305" text-anchor="end" font-size="11" fill="#777">↻ Internalize feedback</text>
+      </svg>
+      <div class="figure-caption">Externalize-internalize loop — the system's purpose isn't "to record" but to force high-frequency high-quality cognitive operations</div>
+    </div>
+  </section>
+
+  <!-- SCENARIOS -->
+  <section id="scenarios">
+    <div class="kh">
+      <div class="kh-eyebrow">3 SCENARIOS</div>
+      <h2>How this would<br><em>work for you</em></h2>
+      <p class="kh-sub">Three relatable scenarios — Cognitive OS vs traditional notes</p>
+    </div>
+
+    <div class="scenarios-grid">
+      <div class="scenario-card">
+        <div class="scenario-tag">A · Creative</div>
+        <div class="scenario-title">How "almost-mistake" becomes a permanent rule</div>
+        <p class="scenario-flow">
+          <strong>One day:</strong> high-emotion state — you almost made a decision you'd regret.<br>
+          <strong>You pause:</strong> would I do this when calm, or am I being pushed by emotion?<br>
+          <strong>Next day:</strong> codify the "almost-mistake" into a <strong>named protocol</strong> in the methodology file.<br>
+          <strong>Long-term:</strong> system auto-scans; trigger conditions met → protocol activates.
+        </p>
+        <div class="scenario-diff">
+          <strong>The difference:</strong> in traditional notes it's "today's reflection", drowned next week. In Cognitive OS it's a <strong>methodology upgrade</strong> → auto-backfills evidence to related judgments → the system becomes permanently smarter.
+        </div>
+      </div>
+
+      <div class="scenario-card">
+        <div class="scenario-tag">B · Research</div>
+        <div class="scenario-title">An old warning condition, auto-triggered</div>
+        <p class="scenario-flow">
+          <strong>Past:</strong> in a research piece you wrote "if X is observed, the original judgment's premise has changed".<br>
+          <strong>One day:</strong> engine scan finds X has occurred for the first time. System outputs trigger alert.<br>
+          <strong>Same day:</strong> system flags related nodes with ⚠️ pending review.
+        </p>
+        <div class="scenario-diff">
+          <strong>The difference:</strong> most judgments fail by being forgotten. Cognitive OS gives <strong>every hypothesis an expiration check</strong>, self-maintaining.
+        </div>
+      </div>
+
+      <div class="scenario-card">
+        <div class="scenario-tag">C · Decision</div>
+        <div class="scenario-title">One new signal, upgrades multiple judgments</div>
+        <p class="scenario-flow">
+          <strong>Morning:</strong> important news. In traditional notes, this is one inbox entry.<br>
+          <strong>Minutes later:</strong> Cognitive OS auto-determines: it <strong>touches multiple judgment nodes</strong>, pushes one topic into a new stage, adds corroborating evidence to others.<br>
+          <strong>Same day:</strong> 5 minutes reading the distillation report = complete cognitive consequences.
+        </p>
+        <div class="scenario-diff">
+          <strong>The difference:</strong> same message — isolated note in Obsidian, <strong>multi-judgment trigger event</strong> in Cognitive OS. Knowledge → Wisdom happens here.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENGINE -->
+  <section id="engine">
+    <div class="kh">
+      <div class="kh-eyebrow">CORE MECHANISMS</div>
+      <h2>Three engineering mechanisms<br>that support <em>judgment</em></h2>
+      <p class="kh-sub">No traditional note system has all three. Combined, they make Wisdom emergence possible.</p>
+    </div>
+
+    <div class="mech-grid">
+      <div class="mech-card">
+        <div class="mech-num">①</div>
+        <div class="mech-title">Dual-track Wiki</div>
+        <p class="mech-desc">Maintain <strong>objective knowledge</strong> (facts / data / theories — seeking truth) and <strong>subjective judgments</strong> (opinions / interpretations / frameworks — subject-bound) on separate tracks. The objective track can feed AI; the subjective track is your moat.</p>
+      </div>
+      <div class="mech-card">
+        <div class="mech-num">②</div>
+        <div class="mech-title">Falsifier protocol</div>
+        <p class="mech-desc">Every judgment annotates <strong>"under what conditions I would acknowledge I'm wrong"</strong>. Judgments are not beliefs; they are hypotheses with falsifier conditions. Confidence dynamically shifts across 3 tiers: 🔴 initial → 🟡 verifying → 🟢 stable.</p>
+      </div>
+      <div class="mech-card">
+        <div class="mech-num">③</div>
+        <div class="mech-title">Feedback loop</div>
+        <p class="mech-desc">Feedback from each practice is <strong>not "noted and reflected on"</strong>, but modifies the methodology file → automatically reverse-appends evidence to all related judgment nodes. The system permanently upgrades.</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 36px;">
+      <div class="kh" style="margin-bottom: 22px;">
+        <div class="kh-eyebrow">NODE SCHEMA</div>
+        <h2 style="font-size: 22px;">What a judgment node <em>looks like</em></h2>
+      </div>
+
+      <div class="schema-card">
+        <pre class="schema-code"><span class="key">type:</span> <span class="val">cognition</span>
+<span class="key">domain:</span> <span class="val">[your domain]</span>
+<span class="key">layer:</span> <span class="val">[judgment layer]</span>
+<span class="key">confidence:</span> <span class="yellow">🟡 0.65</span>   <span class="comment"># 3-tier dynamic</span>
+<span class="key">evolution-stage:</span> <span class="val">[emerging / accelerating / stable / crowded]</span>
+<span class="key">evidence:</span>                  <span class="comment"># supporting evidence · timestamped</span>
+  - YYYY-MM-DD [new evidence 1]
+  - YYYY-MM-DD [new evidence 2]
+<span class="key">falsifiers:</span>                <span class="comment"># conditions that would invalidate</span>
+  - <span class="val">F1: [condition 1]</span>
+  - <span class="val">F2: [condition 2]</span>
+  - <span class="val">F3: [condition 3]</span>
+<span class="key">methodology:</span> <span class="val">[[linked methodology file]]</span>
+<span class="key">updated:</span> <span class="val">YYYY-MM-DD</span></pre>
+        <ul class="schema-points">
+          <li><strong>3-tier dynamic confidence</strong> — every new evidence triggers recheck. Not a one-time call.</li>
+          <li><strong>Explicit falsifier list</strong> — judgments aren't beliefs, they're hypotheses with "how to be refuted" clauses.</li>
+          <li><strong>Timestamped evidence appending</strong> — easy to trace how a judgment was formed.</li>
+          <li><strong>methodology reverse routing</strong> — when methodology upgrades, system auto-scans this field and backfills evidence to all linked nodes.</li>
+          <li><strong>Evolution-stage tagging</strong> — different stages map to different action protocols.</li>
+          <li><strong>Three-path bidirectional links</strong> — let the cognitive network self-evolve.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="margin-top: 40px;">
+      <div class="kh" style="margin-bottom: 22px;">
+        <div class="kh-eyebrow">ARCHITECTURE</div>
+        <h2 style="font-size: 22px;">Complete <em>eight-layer architecture</em> + system layer</h2>
+      </div>
+
+      <div class="layer-stack">
+        <div class="layer l-sys"><div class="lnum">_System</div><div class="lname">Agent operating protocol<small>SOUL / AGENT_PROTOCOL — read at every session</small></div></div>
+        <div class="layer l0"><div class="lnum">00</div><div class="lname">Inbox<small>External input reactions · dual slot / signal pool / change pool</small></div></div>
+        <div class="layer l1"><div class="lnum">01</div><div class="lname">Drafts<small>Internal thinking · dual state: published / processed</small></div></div>
+        <div class="layer l2"><div class="lnum">02</div><div class="lname">Memory<small>High-compression background · read every session</small></div></div>
+        <div class="layer l3"><div class="lnum">03</div><div class="lname">Knowledge Wiki<small>External facts · Entities / Facts / Concepts / Theories</small></div></div>
+        <div class="layer l4"><div class="lnum">04</div><div class="lname">★ Cognition Wiki<small>Internal judgments · World / Domain / Self / Meta — your moat</small></div></div>
+        <div class="layer l5"><div class="lnum">05</div><div class="lname">Topics<small>Methodology instantiation workspace</small></div></div>
+        <div class="layer l6"><div class="lnum">06</div><div class="lname">Workbench<small>Execution + feedback · Daily / Weekly / Synthesis</small></div></div>
+        <div class="layer l7"><div class="lnum">07</div><div class="lname">Methodology<small>Methodology library</small></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMOS -->
+  <section id="demos">
+    <div class="kh">
+      <div class="kh-eyebrow">INTERACTIVE DEMOS</div>
+      <h2>The engine — <em>how it actually runs</em></h2>
+      <p class="kh-sub">Three demos — <strong>how judgments form, support decisions, and run daily</strong>.<br>This is the biggest difference vs LLM Wiki: not stopping at "maintain knowledge", going up to "engineer judgment".</p>
+    </div>
+
+    <div class="demo-grid">
+      <a href="Demo1-judgment-lifecycle.html" class="demo-card">
+        <div class="demo-head">
+          <div class="demo-num">Demo 01 · How judgment forms</div>
+          <div class="demo-title">From "fuzzy initial guess" to "state machine"</div>
+          <div class="demo-sub">A judgment node's full 90-day lifecycle</div>
+        </div>
+        <div class="demo-body">
+          See how a judgment moves 🔴 0.40 → 🟢 0.85, evolution-stage shifts 5 times, falsifiers get reverse-confirmed, and finally triggers a protocolized decision.
+        </div>
+        <div class="demo-foot">
+          <span class="demo-link">View demo →</span>
+        </div>
+      </a>
+
+      <a href="Demo2-judgment-to-decision.html" class="demo-card">
+        <div class="demo-head">
+          <div class="demo-num">Demo 02 · How judgment supports decision</div>
+          <div class="demo-title">Emotional vs Protocolized decision</div>
+          <div class="demo-sub">From "almost-mistake" to permanent protocol</div>
+        </div>
+        <div class="demo-body">
+          Side-by-side: when prices jump, <strong>"the rules you wrote when calm" vs "today's FOMO"</strong>. Plus how feedback reverse-updates the methodology so the protocol upgrades permanently.
+        </div>
+        <div class="demo-foot">
+          <span class="demo-link">View demo →</span>
+        </div>
+      </a>
+
+      <a href="Demo3-daily-heartbeat.html" class="demo-card">
+        <div class="demo-head">
+          <div class="demo-num">Demo 03 · How judgments run daily</div>
+          <div class="demo-title">Daily heartbeat — multi-node fan-out</div>
+          <div class="demo-sub">5 scheduled tasks + 5 minutes reading</div>
+        </div>
+        <div class="demo-body">
+          One new data point <strong>auto-touches multiple judgment nodes</strong>: evidence appending / falsifier state changes / evolution-stage transitions / promotion candidates.
+        </div>
+        <div class="demo-foot">
+          <span class="demo-link">View demo →</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta-band">
+    <h3>Bring this engine to your domain</h3>
+    <p>Cognitive OS Starter — a minimal, opinionated template you can fork and adapt to your domain. Same pattern, your schema, your domain. Built on top of (and compatible with) LLM Wiki.</p>
+    <div class="cta-btns">
+      <a href="https://github.com/FunSHH/cognitive-os/tree/main/starter" target="_blank" class="cta-btn primary">Get the Starter ↗</a>
+      <a href="https://github.com/FunSHH/cognitive-os" target="_blank" class="cta-btn ghost">View on GitHub</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div><strong>Cognitive OS</strong> · An engineering system for judgment · Maxwell</div>
+  <div>Not "remember more" — "judge better"</div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demo 2 — 从判断到决策的协议化路径 · Cognitive OS</title>
+<style>
+  :root {
+    --sand: #f8f6f2; --sand-mid: #f0ede7;
+    --ink: #1a1a1a; --ink-mid: #4a4a4a; --ink-soft: #777; --ink-ghost: #b0aba0;
+    --border: #e0ddd6; --border-lt: #ece9e2;
+    --amber: #c8a050; --amber-deep: #8a6020; --amber-bg: #fdf6e8; --amber-border: #e8d5a0;
+    --green: #2d7a50; --green-bg: #e6f5ec; --green-border: #b8dcc0;
+    --yellow: #d4a418; --yellow-bg: #fdf4dc; --yellow-border: #f0d0a0;
+    --red: #c04848; --red-bg: #fceeec; --red-border: #f0bcbc;
+    --teal: #2d8a80; --teal-bg: #e8f4f2;
+  }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; background: var(--sand); color: var(--ink); line-height: 1.65; font-size: 14px; }
+  a { text-decoration: none; color: inherit; }
+  nav { position: sticky; top: 0; z-index: 100; background: rgba(248,246,242,.95); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); height: 52px; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; }
+  .nav-brand { font-size: 13px; font-weight: 700; }
+  .nav-back { font-size: 11.5px; color: var(--ink-soft); padding: 5px 12px; border: 1px solid var(--border); border-radius: 6px; }
+  .nav-back:hover { color: var(--ink); background: #fff; }
+  .page { max-width: 920px; margin: 0 auto; padding: 0 40px 80px; }
+  .topic-header { padding: 56px 0 36px; border-bottom: 1px solid var(--border); margin-bottom: 36px; }
+  .crumb { font-size: 11px; color: var(--ink-ghost); letter-spacing: .08em; margin-bottom: 14px; }
+  .crumb a { color: var(--amber); }
+  h1 { font-size: 36px; font-weight: 700; letter-spacing: -.025em; line-height: 1.2; margin-bottom: 14px; }
+  h1 em { font-style: normal; color: var(--amber); }
+  .sub { font-size: 15px; color: var(--ink-mid); line-height: 1.7; max-width: 720px; }
+  .sub strong { color: var(--ink); }
+
+  section { margin-bottom: 48px; }
+  .sh { display: flex; align-items: baseline; gap: 14px; margin-bottom: 22px; flex-wrap: wrap; }
+  .sh-tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--amber-bg); color: var(--amber-deep); font-weight: 700; letter-spacing: .04em; }
+  .sh-line { flex: 1; height: 1px; background: var(--border); min-width: 30px; }
+  .sh p { font-size: 12px; color: var(--ink-ghost); }
+  .sh h2 { font-size: 18px; font-weight: 700; }
+
+  /* 协议卡 */
+  .protocol-card {
+    background: #1a1a1a; color: #f0ede0; border-radius: 12px;
+    padding: 26px 30px; margin: 28px 0;
+  }
+  .protocol-meta {
+    font-size: 11px; color: #888; font-family: "SF Mono", monospace;
+    margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #333;
+  }
+  .protocol-name { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .protocol-desc { font-size: 13px; color: #aaa; margin-bottom: 18px; line-height: 1.7; }
+  .protocol-trigger {
+    font-size: 12px; color: var(--amber); font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase; margin-bottom: 10px;
+  }
+  .protocol-list {
+    list-style: none; padding: 0; margin: 0 0 20px;
+  }
+  .protocol-list li {
+    font-size: 13px; color: #f0ede0; line-height: 1.7;
+    padding: 6px 0 6px 20px; position: relative;
+  }
+  .protocol-list li::before {
+    content: "→"; position: absolute; left: 0; color: var(--amber); font-weight: 700;
+  }
+  .protocol-action {
+    font-size: 13px; color: #6ad498; font-weight: 600;
+    background: rgba(106, 212, 152, .1); border: 1px solid #2d7a50;
+    padding: 10px 14px; border-radius: 6px;
+  }
+  .protocol-action strong { color: #fff; }
+
+  /* 双路径对比 */
+  .paths {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; margin: 28px 0; border-radius: 12px; overflow: hidden;
+    background: #fff; border: 1px solid var(--border);
+  }
+  .path {
+    padding: 24px 28px;
+  }
+  .path.left { background: var(--red-bg); border-right: 1px solid var(--red-border); }
+  .path.right { background: var(--green-bg); }
+  .path-tag {
+    font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+    font-weight: 700; margin-bottom: 8px;
+  }
+  .path.left .path-tag { color: var(--red); }
+  .path.right .path-tag { color: var(--green); }
+  .path-title { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 14px; line-height: 1.4; }
+  .path-step {
+    font-size: 12.5px; color: var(--ink-mid); padding: 8px 0;
+    border-bottom: 1px dashed rgba(0,0,0,.08); line-height: 1.65;
+  }
+  .path-step:last-child { border-bottom: none; }
+  .path-step strong { color: var(--ink); }
+  .path-step .marker { display: inline-block; width: 18px; font-weight: 700; }
+  .path.left .marker { color: var(--red); }
+  .path.right .marker { color: var(--green); }
+  .path-outcome {
+    margin-top: 14px; padding: 12px 14px; border-radius: 6px;
+    font-size: 12.5px; line-height: 1.6;
+  }
+  .path.left .path-outcome { background: rgba(192,72,72,.12); color: var(--red); }
+  .path.right .path-outcome { background: rgba(45,122,80,.12); color: var(--green); }
+  .path-outcome strong { font-weight: 700; }
+  @media (max-width: 760px) { .paths { grid-template-columns: 1fr; } .path.left { border-right: none; border-bottom: 1px solid var(--red-border); } }
+
+  /* 闭环 */
+  .loop {
+    background: #fff; border: 1px solid var(--border); border-radius: 12px;
+    padding: 28px; margin: 28px 0;
+  }
+  .loop-stages {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    margin-bottom: 20px;
+  }
+  .loop-stage {
+    background: var(--amber-bg); border: 1px solid var(--amber-border);
+    border-radius: 8px; padding: 14px 12px; text-align: center;
+    position: relative;
+  }
+  .loop-stage::after {
+    content: "→"; position: absolute; right: -16px; top: 50%;
+    transform: translateY(-50%); font-size: 18px; color: var(--amber-deep);
+    font-weight: 700;
+  }
+  .loop-stage:last-child::after { content: "↻"; right: -10px; color: var(--green); font-size: 22px; }
+  .loop-step-num {
+    display: inline-block; width: 22px; height: 22px;
+    background: var(--amber-deep); color: #fff;
+    border-radius: 50%; line-height: 22px; font-size: 11px; font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .loop-step-name { font-size: 12px; font-weight: 700; color: var(--ink); }
+  .loop-step-desc { font-size: 11px; color: var(--ink-soft); margin-top: 3px; line-height: 1.4; }
+  @media (max-width: 760px) { .loop-stages { grid-template-columns: 1fr 1fr; } .loop-stage::after { display: none; } }
+
+  /* 协议升级 diff */
+  .diff-card {
+    background: #fff; border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px 28px;
+  }
+  .diff-version {
+    font-family: "SF Mono", monospace; font-size: 11px; font-weight: 700;
+    padding: 3px 8px; border-radius: 4px; display: inline-block;
+    margin-bottom: 6px;
+  }
+  .diff-old { background: #f5f3ed; color: var(--ink-soft); }
+  .diff-new { background: var(--amber-bg); color: var(--amber-deep); }
+  .diff-block { padding: 12px 0; border-bottom: 1px dashed var(--border-lt); }
+  .diff-block:last-child { border-bottom: none; }
+  .diff-block h4 { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .diff-block .line {
+    font-family: "SF Mono", monospace; font-size: 12px; line-height: 1.7;
+    padding: 3px 0;
+  }
+  .line.added { background: rgba(45,122,80,.06); color: var(--green); padding-left: 8px; border-left: 2px solid var(--green); }
+  .line.same { color: var(--ink-mid); padding-left: 8px; }
+
+  .punchline { background: #1a1a1a; color: var(--sand); border-radius: 14px; padding: 36px 32px; text-align: center; margin: 40px 0; }
+  .punchline-main { font-size: 24px; font-weight: 700; letter-spacing: -.015em; line-height: 1.45; margin-bottom: 10px; }
+  .punchline-main em { font-style: normal; color: var(--amber); }
+  .punchline-sub { font-size: 13px; color: #aaa; font-style: italic; font-family: "Songti SC", serif; }
+
+  .privacy-note { background: var(--sand-mid); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; font-size: 11.5px; color: var(--ink-mid); line-height: 1.7; margin: 36px 0 20px; }
+  .privacy-note strong { color: var(--ink); }
+  footer { border-top: 1px solid var(--border); padding: 24px 0; display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-ghost); flex-wrap: wrap; gap: 10px; }
+  footer a { color: var(--amber); }
+  @media (max-width: 760px) { .page { padding: 0 20px 60px; } nav { padding: 0 20px; } h1 { font-size: 26px; } }
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">Demo 2 · 从判断到决策</div>
+  <a href="index.html" class="nav-back">← Cognitive OS</a>
+</nav>
+
+<div class="page">
+
+  <div class="topic-header">
+    <div class="crumb"><a href="index.html">Cognitive OS</a> &nbsp;→&nbsp; Demo 2 &nbsp;→&nbsp; <strong>从判断到决策</strong></div>
+    <h1>判断如何<br><em>支持决策</em><br>而不被情绪推着走</h1>
+    <p class="sub">
+      你研究了某个主题三个月，所有论点都验证了。某天它突然爆发——内心声音说"现在就该动手"。你差点动了。
+      但你停下来。<br><br>
+      <strong>真正的差别不在 AI 多聪明，在于你冷静时写下的协议有没有进入"自动扫描"管道</strong>。
+      下面演示一个判断如何<strong>从静态结论变成可执行协议</strong>。
+    </p>
+  </div>
+
+  <!-- 起点：你冷静时写下的协议 -->
+  <section>
+    <div class="sh">
+      <span class="sh-tag">起点 · 你冷静时写下的协议</span>
+      <div class="sh-line"></div>
+      <p>不是 AI 想出来的 · 是你自己定的"以后情绪上头时遵守的规则"</p>
+    </div>
+
+    <div class="protocol-card">
+      <div class="protocol-meta">07 Methodology / Investment / 05 方法论落地 / 短期跳涨暂停建仓协议.md</div>
+      <div class="protocol-name">§ 4.5.9 · 情绪触发暂停协议</div>
+      <div class="protocol-desc">
+        起源：某次你"差点追高"的真实反馈。冷静时你意识到——当价格跳起来的当天就买入，多半买的不是论点，是 FOMO。<br>
+        第二天，你把这个反应凝固成了一条具名协议。
+      </div>
+
+      <div class="protocol-trigger">触发条件（任一命中即生效）</div>
+      <ul class="protocol-list">
+        <li>单日涨幅 ≥ 10%</li>
+        <li>5 日累计涨幅 ≥ 25%</li>
+        <li>接近 52 周高点</li>
+        <li>重大催化剂当日</li>
+      </ul>
+
+      <div class="protocol-action">
+        <strong>触发动作：</strong>暂停建仓 1-3 个交易日 · 写入 <code style="color:#aaa;background:#333;padding:1px 5px;border-radius:3px;">latest-spike-event</code> 字段 · 等待回调 ≥ 8-15% 后再评估
+      </div>
+    </div>
+  </section>
+
+  <!-- 某天信号触发：两条路径 -->
+  <section>
+    <div class="sh">
+      <span class="sh-tag">某天信号触发 · 两条路径同时存在</span>
+      <div class="sh-line"></div>
+      <p>同一个情境 · 同一个你 · 两种系统给出完全不同的决策路径</p>
+    </div>
+
+    <div class="paths">
+      <div class="path left">
+        <div class="path-tag">没有协议化系统时</div>
+        <div class="path-title">情绪驱动的决策路径</div>
+        <div class="path-step"><span class="marker">①</span><strong>09:30</strong> · 你研究过的某只标的开盘涨停 +10%。手机推送、群里讨论刷屏。</div>
+        <div class="path-step"><span class="marker">②</span><strong>09:45</strong> · 你打开研究文档，确认论点全部成立。"对啊，这就是我说的！"</div>
+        <div class="path-step"><span class="marker">③</span><strong>10:00</strong> · 涨幅到 +15%，你看到群里有人发"刚刚加仓"。FOMO 升级。</div>
+        <div class="path-step"><span class="marker">④</span><strong>10:15</strong> · 你下单买入。"反正我研究过，论点都对。"</div>
+        <div class="path-step"><span class="marker">⑤</span><strong>3 天后</strong> · 标的回调 -12%。你心情复杂："论点没问题啊？为什么跌？"</div>
+        <div class="path-outcome">
+          <strong>问题：</strong>"论点对"和"现在该买"不是同一件事。你买的不是论点，是当下涨势带来的确定性幻觉。
+        </div>
+      </div>
+
+      <div class="path right">
+        <div class="path-tag">有协议化系统时</div>
+        <div class="path-title">协议驱动的决策路径</div>
+        <div class="path-step"><span class="marker">①</span><strong>08:00</strong> · 自动扫描发现该标的单日 ≥ 10%。<strong>§ 4.5.9 协议条件命中</strong>。</div>
+        <div class="path-step"><span class="marker">②</span><strong>08:30</strong> · 蒸馏报告自动写入：<code style="font-family:monospace;font-size:11px;background:#eee;padding:1px 4px;border-radius:3px;">latest-spike-event</code> 字段 + "暂停建仓 1-3 日"提醒。</div>
+        <div class="path-step"><span class="marker">③</span><strong>09:30</strong> · 你打开屏幕，看到 Synthesis 报告里的提醒。这不是 AI 建议，是你<strong>冷静时自己写的规则</strong>。</div>
+        <div class="path-step"><span class="marker">④</span><strong>10:00</strong> · 涨幅到 +15%。你看着屏幕想"现在买"，但<strong>协议清单已经摆在那里</strong>。FOMO 被一条具名规则拦住。</div>
+        <div class="path-step"><span class="marker">⑤</span><strong>3 天后</strong> · 标的回调 -12%。你按协议规则：等到回调 ≥ 8-15%。冷静时窗口才到。</div>
+        <div class="path-outcome">
+          <strong>差别：</strong>当下"该不该买"不需要你的意志力对抗 FOMO，<strong>你冷静时定的规则替你做了选择</strong>。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 完整闭环 -->
+  <section>
+    <div class="sh">
+      <span class="sh-tag">从判断到协议升级 · 完整闭环</span>
+      <div class="sh-line"></div>
+      <p>决策不是终点 · 反馈进入循环才能让系统永久更聪明</p>
+    </div>
+
+    <div class="loop">
+      <div class="loop-stages">
+        <div class="loop-stage">
+          <div class="loop-step-num">1</div>
+          <div class="loop-step-name">协议触发</div>
+          <div class="loop-step-desc">自动扫描发现条件命中</div>
+        </div>
+        <div class="loop-stage">
+          <div class="loop-step-num">2</div>
+          <div class="loop-step-name">决策日志</div>
+          <div class="loop-step-desc">写入认知快照（不可变更）</div>
+        </div>
+        <div class="loop-stage">
+          <div class="loop-step-num">3</div>
+          <div class="loop-step-name">执行 + 反馈</div>
+          <div class="loop-step-desc">回看是否符合预期</div>
+        </div>
+        <div class="loop-stage">
+          <div class="loop-step-num">4</div>
+          <div class="loop-step-name">协议升级</div>
+          <div class="loop-step-desc">反馈→方法论文件升级</div>
+        </div>
+      </div>
+      <p style="font-size: 12.5px; color: var(--ink-mid); line-height: 1.7; margin-top: 8px;">
+        每次协议被触发并执行后，反馈进入 <code style="font-family:monospace;font-size:11px;background:var(--sand-mid);padding:1px 5px;border-radius:3px;">01 Drafts/Feedback/</code>。
+        这条反馈被蒸馏后会<strong>更新方法论文件</strong> — 比如发现"当日 ≥ 10% 但伴随重大基本面突破"是新场景，协议自动新增一个条件分支。
+        <strong>同一个错你只会犯一次</strong>。
+      </p>
+    </div>
+  </section>
+
+  <!-- 协议升级 diff -->
+  <section>
+    <div class="sh">
+      <span class="sh-tag">协议升级 · 第一次反馈后的差异</span>
+      <div class="sh-line"></div>
+      <p>真实示例：从 v3.2.1 到 v3.2.2 的协议演化</p>
+    </div>
+
+    <div class="diff-card">
+      <div class="diff-block">
+        <h4>触发条件 · 协议升级 diff</h4>
+        <div class="line same">单日涨幅 ≥ 10%</div>
+        <div class="line same">5 日累计涨幅 ≥ 25%</div>
+        <div class="line same">接近 52 周高点</div>
+        <div class="line same">重大催化剂当日</div>
+        <div class="line added">+ <strong>跳涨当日伴随基本面突破信号（v3.2.2 新增）</strong></div>
+        <div class="line added">+ <strong>跨主题共识止损 trigger 同向叠加（v3.2.4 新增）</strong></div>
+      </div>
+
+      <div class="diff-block">
+        <h4>触发动作 · 协议升级 diff</h4>
+        <div class="line same">暂停建仓 1-3 个交易日</div>
+        <div class="line same">写入 latest-spike-event 字段</div>
+        <div class="line added">+ <strong>双 trigger 叠加时延长冷却至 5 个交易日（v3.2.4 新增）</strong></div>
+        <div class="line added">+ <strong>自动反向追加 evidence 到所有关联判断节点（v3.2.4 新增）</strong></div>
+      </div>
+
+      <p style="font-size: 12px; color: var(--ink-soft); margin-top: 12px; font-style: italic; line-height: 1.6;">
+        协议不是一次写完就不动。每次实际触发 + 反馈，都让规则变得更细、更准、更适合你这个人的判断习惯。<br>
+        90 天后的协议，和 90 天前的协议 — 完全不是同一条规则了。
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sh">
+      <span class="sh-tag">VS LLM WIKI</span>
+      <div class="sh-line"></div>
+      <p>同一个决策场景 · 两种系统能帮你做到的不同</p>
+    </div>
+    <div class="paths">
+      <div class="path left" style="background: var(--sand-mid); border-right-color: var(--border);">
+        <div class="path-tag" style="color: var(--ink-soft);">LLM Wiki 给你的</div>
+        <div class="path-title" style="color: var(--ink);">一份持续更新的研究综述</div>
+        <div class="path-step" style="border-bottom-color: rgba(0,0,0,.05); color: var(--ink-mid);">
+          ✓ 当价格跳起来时，LLM Wiki 会给你<strong>所有相关研究、历史先例、专家观点的最新综述</strong>。
+        </div>
+        <div class="path-step" style="border-bottom-color: rgba(0,0,0,.05); color: var(--ink-mid);">
+          ✓ 它会指出"这种情况下市场往往会反转"、"某专家说应该等回调"。
+        </div>
+        <div class="path-step" style="border-bottom: none; color: var(--ink-mid);">
+          ✗ 但你当下的决策<strong>仍然是你一个人对抗 FOMO</strong>。知识更全，并不让你更冷静。
+        </div>
+        <div class="path-outcome" style="background: rgba(0,0,0,.05); color: var(--ink-mid);">
+          <strong>缺什么：</strong>"我冷静时写下的协议"在哪里？谁帮我在情绪上头时<strong>把它推到我面前</strong>？
+        </div>
+      </div>
+      <div class="path right">
+        <div class="path-tag">认知引擎多做的</div>
+        <div class="path-title">一个"代你执行规则"的协议层</div>
+        <div class="path-step">
+          ✓ 你冷静时写的 <strong>§4.5.9 协议</strong> 不是"参考资料"，是<strong>每天扫描每个标的的规则程序</strong>。
+        </div>
+        <div class="path-step">
+          ✓ 条件命中那一刻 = 协议自动触发 + Synthesis 报告写明"暂停建仓 N 日"，<strong>等你打开屏幕就看到</strong>。
+        </div>
+        <div class="path-step" style="border-bottom: none;">
+          ✓ 这不是 AI 在替你做判断。是<strong>你过去的自己</strong>替<strong>当下的你</strong>做判断 — AI 只是把规则推到你面前。
+        </div>
+        <div class="path-outcome">
+          <strong>差别：</strong>LLM Wiki 让你<strong>知道更多</strong>。认知引擎让你<strong>遵守你自己定的规则</strong>。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="punchline">
+    <div class="punchline-main">真正的护城河不是"不犯错"<br>是把每次<em>"差点错"</em>凝固成协议</div>
+    <div class="punchline-sub">同一个错你只会犯一次 · 那才是判断质量的复利</div>
+  </div>
+
+  <div class="privacy-note">
+    <strong>关于本 Demo：</strong>双路径对比 + 协议升级 diff 来自真实方法论演化过程，所有具体细节（标的代号、仓位百分比、操作日期）<strong>均已抽象化</strong>。
+    本页展示<strong>判断如何变成可执行协议、协议如何被反馈升级</strong>的工程机制，不构成投资建议。
+  </div>
+
+  <footer>
+    <div><strong>Demo 2 · 从判断到决策</strong> · Powered by Cognitive OS</div>
+    <div><a href="index.html">← 返回主页</a></div>
+  </footer>
+
+</div>
+</body>
+</html>

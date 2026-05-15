@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cognitive OS · 一个为"判断"而设计的工程系统</title>
+<meta name="description" content="Cognitive OS — 一个为'判断'而设计的工程系统。双轨 Wiki + Falsifier 协议 + 反馈闭环。给所有高频做判断、长期被验证的人。">
+<style>
+  :root {
+    --sand: #f8f6f2;
+    --sand-mid: #f0ede7;
+    --sand-deep: #e8e4d8;
+    --ink: #1a1a1a;
+    --ink-mid: #4a4a4a;
+    --ink-soft: #777;
+    --ink-ghost: #b0aba0;
+    --border: #e0ddd6;
+    --border-lt: #ece9e2;
+    /* Keynote-inspired palette */
+    --amber: #c8a050;        /* Wisdom */
+    --amber-deep: #8a6020;
+    --amber-bg: #fdf6e8;
+    --amber-border: #e8d5a0;
+    --teal: #2d8a80;         /* 焦点 */
+    --teal-bg: #e8f4f2;
+    --sky: #4a7acc;          /* 信息 */
+    --sky-bg: #edf1f8;
+    --red: #c04848;          /* 天花板 */
+    --red-bg: #fceeec;
+    --slate: #8a8478;        /* 次要 */
+  }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+    background: var(--sand);
+    color: var(--ink);
+    line-height: 1.6;
+    font-size: 14px;
+  }
+  a { text-decoration: none; color: inherit; }
+
+  /* ─── NAV ─── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(248, 246, 242, 0.94);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px; height: 52px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-brand { font-size: 13px; font-weight: 700; letter-spacing: -0.01em; }
+  .nav-brand span { font-weight: 400; color: var(--ink-soft); margin-left: 6px; }
+  .nav-links { display: flex; gap: 22px; }
+  .nav-links a { font-size: 12px; color: var(--ink-soft); transition: color 0.15s; }
+  .nav-links a:hover { color: var(--ink); }
+  @media (max-width: 760px) { .nav-links { display: none; } nav { padding: 0 20px; } }
+
+  /* ─── LAYOUT ─── */
+  .page { max-width: 960px; margin: 0 auto; padding: 0 40px 80px; }
+  section { margin-bottom: 80px; }
+  @media (max-width: 760px) { .page { padding: 0 20px 60px; } section { margin-bottom: 56px; } }
+
+  /* ─── HERO ─── */
+  .hero { padding: 90px 0 60px; text-align: center; }
+  .hero-name {
+    font-size: 15px; font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--amber-deep); margin-bottom: 18px;
+  }
+  .hero-name .dot { color: var(--ink-ghost); margin: 0 8px; }
+  .hero h1 {
+    font-size: 56px; font-weight: 700; letter-spacing: -0.04em;
+    line-height: 1.05; margin-bottom: 28px; color: var(--ink);
+  }
+  .hero h1 em { font-style: normal; color: var(--amber); }
+  .hero h1 .strike {
+    color: var(--ink-ghost);
+    text-decoration: line-through; text-decoration-thickness: 3px;
+  }
+  .hero-tagline {
+    font-size: 17px; font-weight: 500;
+    color: var(--ink-mid); max-width: 720px; margin: 0 auto 36px;
+    line-height: 1.7;
+  }
+  .hero-tagline strong { color: var(--ink); font-weight: 600; }
+  .hero-quote {
+    display: inline-block;
+    font-family: "Songti SC", "Source Han Serif", serif;
+    font-size: 17px; font-style: italic;
+    color: var(--ink-mid);
+    padding: 14px 28px;
+    border-left: 3px solid var(--amber);
+    text-align: left; max-width: 540px;
+    line-height: 1.7;
+  }
+  @media (max-width: 760px) { .hero h1 { font-size: 38px; } .hero-tagline { font-size: 15px; } }
+
+  /* ─── KEYNOTE-STYLE SECTION HEAD ─── */
+  .kh { text-align: center; margin-bottom: 36px; }
+  .kh-eyebrow {
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--ink-ghost); margin-bottom: 12px; font-weight: 600;
+  }
+  .kh h2 {
+    font-size: 32px; font-weight: 700; letter-spacing: -0.025em;
+    line-height: 1.25; margin-bottom: 14px;
+  }
+  .kh h2 em { font-style: normal; color: var(--amber); }
+  .kh-sub { font-size: 15px; color: var(--ink-soft); max-width: 600px; margin: 0 auto; }
+  @media (max-width: 760px) { .kh h2 { font-size: 24px; } }
+
+  /* ─── PUNCHLINE CARDS (大字金句) ─── */
+  .punchline {
+    background: #1a1a1a; color: var(--sand);
+    border-radius: 14px; padding: 48px 36px;
+    text-align: center; margin: 36px 0;
+  }
+  .punchline-main {
+    font-size: 32px; font-weight: 700;
+    letter-spacing: -0.02em; line-height: 1.3;
+    margin-bottom: 14px;
+  }
+  .punchline-main em {
+    font-style: normal; color: var(--amber);
+  }
+  .punchline-sub {
+    font-size: 14px; color: #aaa;
+    font-family: "Songti SC", serif;
+    font-style: italic;
+  }
+  @media (max-width: 760px) { .punchline-main { font-size: 22px; } }
+
+  /* ─── INLINE SVG WRAPPER ─── */
+  .figure {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 14px; padding: 32px;
+    margin: 24px 0;
+    overflow: hidden;
+  }
+  .figure svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+  .figure-caption {
+    margin-top: 18px;
+    font-size: 12px; color: var(--ink-soft); text-align: center;
+    font-style: italic;
+  }
+
+  /* ─── COMPARISON TABLE (DIFF) ─── */
+  .diff-table {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    margin-top: 24px;
+  }
+  .diff-row {
+    display: grid; grid-template-columns: 1fr 2fr;
+    border-bottom: 1px solid var(--border-lt);
+    padding: 18px 24px; gap: 24px;
+    align-items: start;
+  }
+  .diff-row:last-child { border-bottom: none; }
+  .diff-row.head {
+    background: var(--sand-mid);
+    font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-soft); font-weight: 700;
+  }
+  .diff-tool { font-weight: 700; color: var(--ink); font-size: 14px; }
+  .diff-tool small {
+    display: block; font-size: 11px; color: var(--ink-soft);
+    font-weight: 400; margin-top: 3px;
+  }
+  .diff-text { font-size: 13px; color: var(--ink-mid); line-height: 1.65; }
+  .diff-text strong { color: var(--amber-deep); }
+  .diff-text .them {
+    display: block; color: var(--ink-soft); font-size: 12px;
+    margin-bottom: 5px;
+  }
+  .diff-text .them::before { content: "他们："; font-weight: 600; color: var(--ink-ghost); }
+  .diff-text .us::before { content: "认知引擎："; font-weight: 700; color: var(--amber-deep); margin-right: 4px; }
+
+  /* ─── THREE SCENARIOS ─── */
+  .scenarios-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+  }
+  .scenario-card {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 12px; padding: 26px;
+    position: relative;
+  }
+  .scenario-card::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--amber);
+  }
+  .scenario-tag {
+    font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--amber-deep); margin-bottom: 8px; font-weight: 700;
+  }
+  .scenario-title {
+    font-size: 17px; font-weight: 700; margin-bottom: 14px;
+    line-height: 1.35;
+  }
+  .scenario-flow {
+    font-size: 12.5px; color: var(--ink-mid); line-height: 1.7;
+    margin-bottom: 16px;
+  }
+  .scenario-flow strong { color: var(--ink); }
+  .scenario-diff {
+    background: var(--amber-bg); border: 1px solid var(--amber-border);
+    border-radius: 8px; padding: 10px 12px;
+    font-size: 11.5px; color: var(--ink-mid); line-height: 1.6;
+  }
+  .scenario-diff strong { color: var(--amber-deep); }
+  @media (max-width: 760px) { .scenarios-grid { grid-template-columns: 1fr; } }
+
+  /* ─── MECHANISMS ─── */
+  .mech-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+  }
+  .mech-card {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 12px; padding: 26px;
+  }
+  .mech-num {
+    display: inline-block; width: 36px; height: 36px; border-radius: 50%;
+    background: var(--amber-bg); color: var(--amber-deep);
+    text-align: center; line-height: 36px; font-weight: 700; font-size: 15px;
+    margin-bottom: 14px;
+  }
+  .mech-title { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+  .mech-desc { font-size: 13px; color: var(--ink-mid); line-height: 1.7; }
+  .mech-desc strong { color: var(--ink); }
+  @media (max-width: 760px) { .mech-grid { grid-template-columns: 1fr; } }
+
+  /* ─── NODE SCHEMA ─── */
+  .schema-card {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 12px; padding: 28px;
+    display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px;
+  }
+  .schema-code {
+    background: #1a1a1a; color: #f0ede0;
+    border-radius: 8px; padding: 18px 22px;
+    font-family: "SF Mono", "Menlo", monospace;
+    font-size: 12px; line-height: 1.8;
+  }
+  .schema-code .key { color: var(--amber); }
+  .schema-code .val { color: #f0ede0; }
+  .schema-code .red { color: #ff7878; font-weight: 700; }
+  .schema-code .yellow { color: var(--amber); font-weight: 700; }
+  .schema-code .green { color: #6ad498; font-weight: 700; }
+  .schema-code .comment { color: #888; }
+  .schema-points { list-style: none; padding: 0; }
+  .schema-points li {
+    font-size: 12.5px; color: var(--ink-mid);
+    padding: 8px 0 8px 18px; position: relative;
+    border-bottom: 1px dashed var(--border-lt); line-height: 1.6;
+  }
+  .schema-points li:last-child { border-bottom: none; }
+  .schema-points li::before {
+    content: "→"; position: absolute; left: 0;
+    color: var(--amber); font-weight: 700;
+  }
+  .schema-points strong { color: var(--ink); }
+  @media (max-width: 760px) { .schema-card { grid-template-columns: 1fr; } }
+
+  /* ─── VAULT ARCHITECTURE (8 layers) ─── */
+  .layer-stack {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 12px; padding: 22px;
+  }
+  .layer {
+    display: grid; grid-template-columns: 80px 1fr;
+    gap: 16px; padding: 10px 14px;
+    border-radius: 6px;
+    align-items: center;
+  }
+  .layer + .layer { margin-top: 6px; }
+  .layer .lnum {
+    font-family: "SF Mono", monospace; font-size: 12px; font-weight: 700;
+    color: var(--ink-soft);
+  }
+  .layer .lname { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .layer .lname small {
+    display: block; font-size: 11.5px; color: var(--ink-soft);
+    font-weight: 400; margin-top: 2px;
+  }
+  .layer.l-sys { background: #1a1a1a; }
+  .layer.l-sys .lnum, .layer.l-sys .lname { color: #f0ede0; }
+  .layer.l-sys .lname small { color: #aaa; }
+  .layer.l0 { background: #fdf3ed; }
+  .layer.l1 { background: var(--amber-bg); }
+  .layer.l2 { background: #f3eef8; }
+  .layer.l3 { background: var(--sky-bg); }
+  .layer.l4 { background: #fceaea; }
+  .layer.l5 { background: #e6f5ec; }
+  .layer.l6 { background: #fdf6e0; }
+  .layer.l7 { background: #f3eaf8; }
+
+  /* ─── SERIES (single) ─── */
+  .series-card {
+    background: linear-gradient(135deg, #fff 0%, var(--amber-bg) 100%);
+    border: 1px solid var(--amber-border);
+    border-radius: 14px; padding: 36px 40px;
+    display: grid; grid-template-columns: 1fr auto; gap: 28px;
+    align-items: center;
+  }
+  .ep-badge {
+    display: inline-block;
+    background: var(--amber-deep); color: #fff;
+    font-size: 11px; padding: 3px 10px; border-radius: 4px;
+    font-weight: 700; letter-spacing: 0.06em;
+    margin-bottom: 12px;
+  }
+  .series-title {
+    font-size: 24px; font-weight: 700;
+    letter-spacing: -0.02em; line-height: 1.3;
+    margin-bottom: 12px;
+  }
+  .series-thesis {
+    font-size: 14px; color: var(--ink-mid); line-height: 1.7;
+    max-width: 600px;
+  }
+  .series-cta {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 12px 22px; background: var(--amber);
+    color: #1a1a1a; font-weight: 600; font-size: 13px;
+    border-radius: 8px; white-space: nowrap;
+  }
+  .series-cta:hover { background: var(--amber-deep); color: #fff; }
+  @media (max-width: 760px) { .series-card { grid-template-columns: 1fr; padding: 28px; } }
+
+  /* ─── DEMOS ─── */
+  .demo-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+  }
+  .demo-card {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    transition: all 0.15s;
+  }
+  .demo-card:hover {
+    border-color: var(--sky); box-shadow: 0 4px 16px rgba(74, 122, 204, 0.10);
+    transform: translateY(-2px);
+  }
+  .demo-head { padding: 18px 22px 14px; border-bottom: 1px solid var(--border-lt); background: var(--sky-bg); }
+  .demo-num {
+    font-size: 10px; letter-spacing: 0.1em; color: var(--sky);
+    text-transform: uppercase; font-weight: 700; margin-bottom: 6px;
+  }
+  .demo-title { font-size: 17px; font-weight: 700; color: var(--ink); margin-bottom: 5px; }
+  .demo-sub { font-size: 12px; color: var(--ink-soft); }
+  .demo-body { padding: 16px 22px; font-size: 12.5px; color: var(--ink-mid); line-height: 1.7; }
+  .demo-foot { padding: 12px 22px; border-top: 1px solid var(--border-lt); }
+  .demo-link {
+    color: var(--sky); font-weight: 600; font-size: 12px;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  @media (max-width: 760px) { .demo-grid { grid-template-columns: 1fr; } }
+
+  /* ─── CTA ─── */
+  .cta-band {
+    background: #1a1a1a; color: #fff;
+    border-radius: 14px; padding: 40px 44px;
+    text-align: center;
+  }
+  .cta-band h3 {
+    font-size: 22px; font-weight: 700; margin-bottom: 12px;
+    letter-spacing: -0.02em;
+  }
+  .cta-band p { font-size: 14px; color: #aaa; line-height: 1.7; margin-bottom: 22px; max-width: 540px; margin-left: auto; margin-right: auto; }
+  .cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .cta-btn {
+    padding: 11px 22px; border-radius: 8px;
+    font-size: 13px; font-weight: 600; transition: all 0.15s;
+  }
+  .cta-btn.primary { background: var(--amber); color: #1a1a1a; }
+  .cta-btn.primary:hover { background: #d8b060; }
+  .cta-btn.ghost { background: transparent; color: #fff; border: 1px solid #444; }
+  .cta-btn.ghost:hover { background: #2a2a2a; }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 26px 40px; max-width: 960px; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: var(--ink-ghost);
+  }
+  footer strong { color: var(--ink-soft); }
+
+  /* Mobile padding fix */
+  @media (max-width: 760px) {
+    footer { padding: 26px 20px; flex-direction: column; gap: 8px; }
+    .cta-band { padding: 28px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">Cognitive OS<span>认知引擎</span></div>
+  <div style="display: flex; align-items: center; gap: 16px;">
+    <div class="nav-links">
+      <a href="#thesis">核心命题</a>
+      <a href="#history">80 年史</a>
+      <a href="#vs-others">同类对照</a>
+      <a href="#subject">主体性</a>
+      <a href="#loop">迭代闭环</a>
+      <a href="#scenarios">三个场景</a>
+      <a href="#engine">引擎机制</a>
+      <a href="#series">首期长文</a>
+      <a href="#demos">实战 Demo</a>
+    </div>
+    <a href="en/index.html" style="font-size: 11.5px; color: var(--ink-soft); padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px;">English →</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-name">Cognitive OS <span class="dot">·</span> 认知引擎</div>
+    <h1>一个为 <em>"判断"</em><br>而设计的<br>工程系统</h1>
+    <p class="hero-tagline">
+      当 AI 越来越聪明，<strong>知识不再稀缺</strong>。<br>
+      继续在 Knowledge 层卷"存储更多"，是和 LLM 抢它最擅长的事。<br>
+      这里做的是另一件事 —— <strong>给"判断"这件事，第一次造工程基建</strong>。
+    </p>
+    <div class="hero-quote">
+      大部分人把 AI 当加速器，我把 AI 当认知伙伴。<br>前者越用越依赖，后者越用越强。
+    </div>
+    <div style="margin-top: 28px; font-size: 12.5px; color: var(--ink-soft); max-width: 640px; margin-left: auto; margin-right: auto; line-height: 1.7;">
+      如果 <strong style="color: var(--ink);">Karpathy 的 LLM Wiki</strong> 是"让 LLM 帮你<strong>维护知识</strong>"，<br>
+      认知引擎就是它<strong style="color: var(--amber-deep);">上一层 —</strong> "让 LLM 帮你<strong style="color: var(--amber-deep);">维护判断</strong>"。
+    </div>
+  </div>
+
+  <!-- THESIS · 核心命题 + DIKW 图 -->
+  <section id="thesis">
+    <div class="kh">
+      <div class="kh-eyebrow">CORE THESIS · 核心命题</div>
+      <h2>你的知识管理系统<br>止步于 <em>Knowledge 层</em></h2>
+      <p class="kh-sub">信息的价值分四层。判断、价值、意义在最顶层涌现 — 而所有工具都卡在 Knowledge 层。</p>
+    </div>
+
+    <!-- G1: DIKW 金字塔 -->
+    <div class="figure">
+      <svg viewBox="0 0 700 420" xmlns="http://www.w3.org/2000/svg">
+        <!-- 金字塔四层（梯形）-->
+        <!-- L4 Wisdom 顶 -->
+        <polygon points="280,40 420,40 460,120 240,120" fill="#fdf6e8" stroke="#c8a050" stroke-width="2"/>
+        <text x="350" y="78" text-anchor="middle" font-size="22" font-weight="700" fill="#8a6020">Wisdom</text>
+        <text x="350" y="100" text-anchor="middle" font-size="11" fill="#8a6020">智慧 · 判断涌现</text>
+
+        <!-- L3 Knowledge -->
+        <polygon points="240,120 460,120 500,200 200,200" fill="#fff" stroke="#c8c0a8" stroke-width="2"/>
+        <text x="350" y="158" text-anchor="middle" font-size="18" font-weight="700" fill="#4a4a4a">Knowledge</text>
+        <text x="350" y="180" text-anchor="middle" font-size="11" fill="#777">知识 · 规律 / 框架</text>
+
+        <!-- L2 Information -->
+        <polygon points="200,200 500,200 540,280 160,280" fill="#fff" stroke="#c8c0a8" stroke-width="2"/>
+        <text x="350" y="238" text-anchor="middle" font-size="16" font-weight="600" fill="#4a4a4a">Information</text>
+        <text x="350" y="258" text-anchor="middle" font-size="11" fill="#777">信息 · 结构化关联</text>
+
+        <!-- L1 Data 底 -->
+        <polygon points="160,280 540,280 580,360 120,360" fill="#fff" stroke="#c8c0a8" stroke-width="2"/>
+        <text x="350" y="318" text-anchor="middle" font-size="15" font-weight="600" fill="#777">Data</text>
+        <text x="350" y="338" text-anchor="middle" font-size="11" fill="#999">数据 · 原始信号</text>
+
+        <!-- 天花板线 -->
+        <line x1="180" y1="115" x2="520" y2="115" stroke="#c04848" stroke-width="2" stroke-dasharray="6,4"/>
+        <text x="528" y="120" font-size="11" fill="#c04848" font-weight="700">⚠ 工具天花板</text>
+
+        <!-- Wisdom 涌现标注 -->
+        <text x="350" y="20" text-anchor="middle" font-size="11" fill="#8a6020" font-weight="600" letter-spacing="0.08em">认知主体在这里涌现 ↑</text>
+        <!-- LLM 标注 -->
+        <text x="100" y="160" text-anchor="end" font-size="11" fill="#4a7acc" font-weight="600">LLM 抢的</text>
+        <text x="100" y="175" text-anchor="end" font-size="11" fill="#4a7acc">就是这一层 ↓</text>
+        <line x1="105" y1="170" x2="160" y2="170" stroke="#4a7acc" stroke-width="1" stroke-dasharray="3,3"/>
+      </svg>
+      <div class="figure-caption">DIKW 金字塔 — 所有知识管理工具都卡在 Knowledge 层那条线下</div>
+    </div>
+
+    <div class="punchline">
+      <div class="punchline-main">护城河是 <em>Judgment</em><br>不是 Knowledge</div>
+      <div class="punchline-sub">LLM 让一层不再稀缺。稀缺的是另一层。</div>
+    </div>
+  </section>
+
+  <!-- HISTORY · 80 年史 -->
+  <section id="history">
+    <div class="kh">
+      <div class="kh-eyebrow">80 YEARS HISTORY · 知识管理简史</div>
+      <h2>80 年过去<br>这条线<em>从未被打破</em></h2>
+      <p class="kh-sub">从 Memex 到 LLM Wiki —— 工具越来越强，但全都止步于 Knowledge 层</p>
+    </div>
+
+    <!-- G3: 80 年知识管理史 -->
+    <div class="figure">
+      <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg">
+        <!-- 时间轴 -->
+        <line x1="60" y1="200" x2="660" y2="200" stroke="#c8c0a8" stroke-width="1.5"/>
+        <!-- 天花板线（红虚线）横穿整个图 -->
+        <line x1="40" y1="80" x2="680" y2="80" stroke="#c04848" stroke-width="2" stroke-dasharray="8,5"/>
+        <text x="40" y="70" font-size="11" fill="#c04848" font-weight="700" letter-spacing="0.06em">━━ Wisdom 天花板 · 80 年没人突破 ━━</text>
+
+        <!-- 5 个时代节点 -->
+        <!-- 1945 Memex -->
+        <circle cx="120" cy="200" r="8" fill="#8a6020" stroke="#fff" stroke-width="2"/>
+        <text x="120" y="225" text-anchor="middle" font-size="11" fill="#8a6020" font-weight="700">1945</text>
+        <text x="120" y="245" text-anchor="middle" font-size="13" fill="#1a1a1a" font-weight="700">Memex</text>
+        <text x="120" y="262" text-anchor="middle" font-size="10" fill="#777">外挂大脑构想</text>
+        <line x1="120" y1="195" x2="120" y2="120" stroke="#c8c0a8" stroke-width="1" stroke-dasharray="3,3"/>
+        <circle cx="120" cy="120" r="4" fill="#c8c0a8"/>
+        <text x="120" y="105" text-anchor="middle" font-size="10" fill="#999">止步</text>
+
+        <!-- 1960s Zettelkasten -->
+        <circle cx="240" cy="200" r="8" fill="#8a6020" stroke="#fff" stroke-width="2"/>
+        <text x="240" y="225" text-anchor="middle" font-size="11" fill="#8a6020" font-weight="700">1960s</text>
+        <text x="240" y="245" text-anchor="middle" font-size="13" fill="#1a1a1a" font-weight="700">Zettelkasten</text>
+        <text x="240" y="262" text-anchor="middle" font-size="10" fill="#777">卡片盒 / 原子化</text>
+        <line x1="240" y1="195" x2="240" y2="135" stroke="#c8c0a8" stroke-width="1" stroke-dasharray="3,3"/>
+        <circle cx="240" cy="135" r="4" fill="#c8c0a8"/>
+        <text x="240" y="120" text-anchor="middle" font-size="10" fill="#999">止步</text>
+
+        <!-- 2000s 长青笔记 -->
+        <circle cx="360" cy="200" r="8" fill="#8a6020" stroke="#fff" stroke-width="2"/>
+        <text x="360" y="225" text-anchor="middle" font-size="11" fill="#8a6020" font-weight="700">2000s</text>
+        <text x="360" y="245" text-anchor="middle" font-size="13" fill="#1a1a1a" font-weight="700">长青笔记</text>
+        <text x="360" y="262" text-anchor="middle" font-size="10" fill="#777">概念导向 / 持续演化</text>
+        <line x1="360" y1="195" x2="360" y2="140" stroke="#c8c0a8" stroke-width="1" stroke-dasharray="3,3"/>
+        <circle cx="360" cy="140" r="4" fill="#c8c0a8"/>
+        <text x="360" y="125" text-anchor="middle" font-size="10" fill="#999">止步</text>
+
+        <!-- 2010s Notion / Obsidian -->
+        <circle cx="480" cy="200" r="8" fill="#8a6020" stroke="#fff" stroke-width="2"/>
+        <text x="480" y="225" text-anchor="middle" font-size="11" fill="#8a6020" font-weight="700">2010s+</text>
+        <text x="480" y="245" text-anchor="middle" font-size="13" fill="#1a1a1a" font-weight="700">Notion / Obsidian</text>
+        <text x="480" y="262" text-anchor="middle" font-size="10" fill="#777">客观化 vs 主观化</text>
+        <line x1="480" y1="195" x2="480" y2="145" stroke="#c8c0a8" stroke-width="1" stroke-dasharray="3,3"/>
+        <circle cx="480" cy="145" r="4" fill="#c8c0a8"/>
+        <text x="480" y="130" text-anchor="middle" font-size="10" fill="#999">止步</text>
+
+        <!-- 2023+ LLM Wiki -->
+        <circle cx="600" cy="200" r="10" fill="#c8a050" stroke="#fff" stroke-width="2"/>
+        <text x="600" y="225" text-anchor="middle" font-size="11" fill="#8a6020" font-weight="700">2023+</text>
+        <text x="600" y="245" text-anchor="middle" font-size="13" fill="#1a1a1a" font-weight="700">LLM Wiki</text>
+        <text x="600" y="262" text-anchor="middle" font-size="10" fill="#777">AI 接管记录</text>
+        <line x1="600" y1="195" x2="600" y2="115" stroke="#c8c0a8" stroke-width="1" stroke-dasharray="3,3"/>
+        <circle cx="600" cy="115" r="4" fill="#c04848"/>
+        <text x="600" y="100" text-anchor="middle" font-size="10" fill="#c04848" font-weight="600">仍止步</text>
+
+        <text x="360" y="305" text-anchor="middle" font-size="12" fill="#777" font-style="italic">所有里程碑，停在同一条线下</text>
+      </svg>
+      <div class="figure-caption">G3 · 80 年知识管理史 — 5 代工具，1 条天花板</div>
+    </div>
+  </section>
+
+  <!-- VS OTHERS · 同类对照 -->
+  <section id="vs-others">
+    <div class="kh">
+      <div class="kh-eyebrow">VS COMPETITORS · 同类对照</div>
+      <h2>它们做什么 · <em>我多做什么</em></h2>
+      <p class="kh-sub">7 类同类范式的真实差异 — 最重要的是与 <strong>LLM Wiki</strong> 的关系</p>
+    </div>
+    <div class="diff-table">
+      <div class="diff-row head">
+        <div>同类范式</div>
+        <div>它们的天花板 · 认知引擎补的部分</div>
+      </div>
+      <div class="diff-row" style="background: var(--amber-bg); border-left: 3px solid var(--amber);">
+        <div class="diff-tool"><strong style="color: var(--amber-deep);">LLM Wiki (Karpathy 2026)</strong><small>LLM 维护的 markdown 知识库</small></div>
+        <div class="diff-text">
+          <div class="them">把"维护知识"自动化 — 解决了 wiki 死于维护负担的痛点。但停在 <strong>Knowledge 层</strong>（DIKW L3）。</div>
+          <div class="us"><strong>上一层 — Wisdom 层（DIKW L4）</strong>。维护的不是事实，是<strong>判断</strong>（带 confidence + falsifier + evidence chain）。LLM Wiki 是"知识密度的复利"，认知引擎是"<strong>判断质量的复利</strong>"。两者可以叠加 — LLM Wiki 作为 Knowledge 层，认知引擎在它之上加 Cognition + Methodology 两层。</div>
+        </div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-tool">Obsidian / Logseq<small>本地笔记 + 双向链</small></div>
+        <div class="diff-text">
+          <div class="them">把外部知识连成网络，止步于 Knowledge 层</div>
+          <div class="us"><strong>双轨 Wiki</strong> — Knowledge（外部）和 Cognition（你的判断）分轨维护，判断有 confidence + Falsifier</div>
+        </div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-tool">Notion / AnyType<small>块编辑器 + 数据库</small></div>
+        <div class="diff-text">
+          <div class="them">结构化容器，但内容是死的</div>
+          <div class="us"><strong>每日自动跑</strong> — 5 个调度任务每天扫描、蒸馏、巡检。Vault 是有心跳的</div>
+        </div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-tool">Mem / Heptabase<small>AI 总结 + 卡片</small></div>
+        <div class="diff-text">
+          <div class="them">AI 帮整理记忆，结论无 schema 无证据</div>
+          <div class="us"><strong>强 schema</strong> — 每个判断带 domain / layer / confidence / evidence / falsifiers 完整字段</div>
+        </div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-tool">Roam / Tana<small>大纲 + 知识图谱</small></div>
+        <div class="diff-text">
+          <div class="them">关系网络，但缺"判断"和"反馈"</div>
+          <div class="us"><strong>反馈反向更新</strong> — 实践反馈 → 方法论升级 → 自动追加 evidence 到关联节点</div>
+        </div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-tool">Building a Second Brain<small>PARA 方法论</small></div>
+        <div class="diff-text">
+          <div class="them">分类 + 渐进式总结，止步于"内容回收"</div>
+          <div class="us"><strong>八层闭环</strong> — 从输入到决策到反馈再回到方法论的完整路径</div>
+        </div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-tool">ChatGPT 记忆 / Claude Project<small>LLM 上下文记忆</small></div>
+        <div class="diff-text">
+          <div class="them">记忆住在 AI 手里，你看不到也改不动</div>
+          <div class="us"><strong>主体性回归</strong> — 单一事实源在用户侧，AI 只是协作者不是所有者</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUBJECT · 主体性原则 -->
+  <section id="subject">
+    <div class="kh">
+      <div class="kh-eyebrow">SUBJECT-AWARE · 主体性原则</div>
+      <h2>工具管得了知识<br>管不了 <em>"谁的"</em> 判断</h2>
+      <p class="kh-sub">突破天花板的关键：让"主体"重新在场</p>
+    </div>
+
+    <!-- G4: 主体性原则 -->
+    <div class="figure">
+      <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg">
+        <!-- 左：Knowledge -->
+        <rect x="40" y="40" width="290" height="240" rx="10" fill="#edf1f8" stroke="#b8cce0" stroke-width="2"/>
+        <text x="185" y="72" text-anchor="middle" font-size="16" font-weight="700" fill="#2a4a7a">Knowledge · 知识</text>
+        <text x="185" y="92" text-anchor="middle" font-size="11" fill="#4a7acc">可客观存在，脱离主体也成立</text>
+
+        <text x="60" y="125" font-size="13" fill="#2a4a7a" font-weight="600">✓ 可编码 · 可储存 · 可检索</text>
+        <text x="60" y="155" font-size="13" fill="#2a4a7a" font-weight="600">✓ 可复制 · 可传播 · 可复用</text>
+        <text x="60" y="185" font-size="13" fill="#2a4a7a" font-weight="600">✓ 不依赖"谁"在场</text>
+        <text x="60" y="215" font-size="13" fill="#2a4a7a" font-weight="600">✓ AI 天然擅长的部分</text>
+
+        <text x="185" y="255" text-anchor="middle" font-size="12" fill="#4a7acc" font-style="italic">→ 已经被 LLM 接管</text>
+
+        <!-- 中间 ≠ -->
+        <text x="360" y="170" text-anchor="middle" font-size="42" font-weight="700" fill="#c8a050">≠</text>
+
+        <!-- 右：Cognition -->
+        <rect x="390" y="40" width="290" height="240" rx="10" fill="#fdf6e8" stroke="#e8d5a0" stroke-width="2"/>
+        <text x="535" y="72" text-anchor="middle" font-size="16" font-weight="700" fill="#8a6020">Cognition · 认知</text>
+        <text x="535" y="92" text-anchor="middle" font-size="11" fill="#c8a050">必须依附主体，离开"谁"就不存在</text>
+
+        <text x="410" y="125" font-size="13" fill="#8a6020" font-weight="600">✗ 无法被完整编码 / 传递</text>
+        <text x="410" y="155" font-size="13" fill="#8a6020" font-weight="600">✗ 无法独立于主体储存</text>
+        <text x="410" y="185" font-size="13" fill="#8a6020" font-weight="600">? "谁的"判断？"谁的"审美？</text>
+        <text x="410" y="215" font-size="13" fill="#8a6020" font-weight="600">! 只有你能完成这部分迭代</text>
+
+        <text x="535" y="255" text-anchor="middle" font-size="12" fill="#c8a050" font-style="italic">→ 这是你的护城河</text>
+      </svg>
+      <div class="figure-caption">G4 · 主体性原则 — AI 解决左边，右边只能由你来</div>
+    </div>
+
+    <div class="punchline">
+      <div class="punchline-main">Wisdom 的涌现<br>需要 <em>"主体"</em> 在场</div>
+      <div class="punchline-sub">这就是为什么所有工具都卡在天花板下</div>
+    </div>
+  </section>
+
+  <!-- LOOP · 外化-内化闭环 -->
+  <section id="loop">
+    <div class="kh">
+      <div class="kh-eyebrow">EXTERNALIZE × INTERNALIZE · 迭代闭环</div>
+      <h2>认知升级不靠一万小时<br>靠 <em>一万次迭代</em></h2>
+      <p class="kh-sub">时长本身没有复利。循环的次数，决定认知的深度。</p>
+    </div>
+
+    <!-- G5: 外化 ↔ 内化闭环 -->
+    <div class="figure">
+      <svg viewBox="0 0 720 340" xmlns="http://www.w3.org/2000/svg">
+        <!-- 上：认知（隐性）-->
+        <rect x="200" y="20" width="320" height="100" rx="14" fill="#f3eef8" stroke="#dcc8e8" stroke-width="2"/>
+        <text x="360" y="50" text-anchor="middle" font-size="18" font-weight="700" fill="#5a2a7a">认知 · Cognition</text>
+        <text x="360" y="72" text-anchor="middle" font-size="11" fill="#7a5aa8" letter-spacing="0.08em">隐性 · TACIT</text>
+        <text x="360" y="95" text-anchor="middle" font-size="12" fill="#5a2a7a">直觉 · 判断 · 价值观 · 审美 · 思维框架</text>
+
+        <!-- 中间：左箭头（外化）-->
+        <path d="M 250 130 Q 200 175 250 220" fill="none" stroke="#c8a050" stroke-width="2.5" marker-end="url(#arrowL)"/>
+        <text x="200" y="180" text-anchor="middle" font-size="13" font-weight="700" fill="#8a6020">外化</text>
+        <text x="200" y="198" text-anchor="middle" font-size="10" fill="#c8a050">Externalization</text>
+
+        <!-- 中间：右箭头（内化）-->
+        <path d="M 470 220 Q 520 175 470 130" fill="none" stroke="#2d8a80" stroke-width="2.5" marker-end="url(#arrowR)"/>
+        <text x="520" y="180" text-anchor="middle" font-size="13" font-weight="700" fill="#2d8a80">内化</text>
+        <text x="520" y="198" text-anchor="middle" font-size="10" fill="#2d8a80">Internalization</text>
+
+        <!-- 下：系统（显性）-->
+        <rect x="200" y="230" width="320" height="100" rx="14" fill="#fdf6e8" stroke="#e8d5a0" stroke-width="2"/>
+        <text x="360" y="260" text-anchor="middle" font-size="18" font-weight="700" fill="#8a6020">系统 · System</text>
+        <text x="360" y="282" text-anchor="middle" font-size="11" fill="#c8a050" letter-spacing="0.08em">显性 · EXPLICIT</text>
+        <text x="360" y="305" text-anchor="middle" font-size="12" fill="#8a6020">笔记 · 判断记录 · 方法论 · 复盘</text>
+
+        <!-- 箭头定义 -->
+        <defs>
+          <marker id="arrowL" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#c8a050"/>
+          </marker>
+          <marker id="arrowR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#2d8a80"/>
+          </marker>
+        </defs>
+
+        <!-- 右侧说明 -->
+        <text x="700" y="50" text-anchor="end" font-size="11" fill="#777">↻ 把脑子里的判断显性化</text>
+        <text x="700" y="305" text-anchor="end" font-size="11" fill="#777">↻ 把反馈吃回到认知</text>
+      </svg>
+      <div class="figure-caption">G5 · 外化-内化闭环 — 系统的意义不是"记录"，是逼你高频做高质量认知</div>
+    </div>
+  </section>
+
+  <!-- SCENARIOS · 三个可代入场景 -->
+  <section id="scenarios">
+    <div class="kh">
+      <div class="kh-eyebrow">3 SCENARIOS · 三个场景</div>
+      <h2>这套机制<br><em>用在你身上</em> 会怎样</h2>
+      <p class="kh-sub">三个可代入的场景 — 看认知引擎和传统笔记的差别</p>
+    </div>
+
+    <div class="scenarios-grid">
+      <div class="scenario-card">
+        <div class="scenario-tag">A · 创作场景</div>
+        <div class="scenario-title">"差点犯错"如何变成永久不再犯的规则</div>
+        <p class="scenario-flow">
+          <strong>某天：</strong>你在高情绪状态差点做了一个事后后悔的决定。<br>
+          <strong>停下问：</strong>这是冷静时也会做的，还是被情绪推着？<br>
+          <strong>第二天：</strong>把"差点错"<strong>具名为协议</strong>写入方法论。<br>
+          <strong>长期：</strong>系统自动扫描，触发条件命中就启动。
+        </p>
+        <div class="scenario-diff">
+          <strong>差别：</strong>传统笔记里是"今天感悟"，过几天被淹没。认知引擎里是<strong>方法论文件升级 → 自动反向追加 evidence 到关联节点</strong> → 系统永久变得更聪明一点。
+        </div>
+      </div>
+
+      <div class="scenario-card">
+        <div class="scenario-tag">B · 研究场景</div>
+        <div class="scenario-title">多年前写下的预警条件，被自动命中</div>
+        <p class="scenario-flow">
+          <strong>过去：</strong>你做过完整研究，写过一句"如果 X 出现，意味着原有判断的前提变了"。<br>
+          <strong>某日：</strong>引擎自动扫描发现 X 首次出现。系统输出协议命中提醒。<br>
+          <strong>同日：</strong>自动给关联节点加 ⚠️ 待复核标记。
+        </p>
+        <div class="scenario-diff">
+          <strong>差别：</strong>大多数人的判断会"被遗忘式失效"。认知引擎让<strong>每条假设都带"过期检测"</strong>，自我维护。
+        </div>
+      </div>
+
+      <div class="scenario-card">
+        <div class="scenario-tag">C · 决策场景</div>
+        <div class="scenario-title">一条新信息，如何同时升级多个判断</div>
+        <p class="scenario-flow">
+          <strong>早上：</strong>一条重要消息公布。传统笔记里是一条 Inbox。<br>
+          <strong>几分钟后：</strong>认知引擎自动判定它<strong>触动多个判断节点</strong>、推动主题进入新阶段、为相关主题增加协同证据。<br>
+          <strong>同日：</strong>5 分钟读完蒸馏报告 = 完整认知后果。
+        </p>
+        <div class="scenario-diff">
+          <strong>差别：</strong>同一条消息，Obsidian 里是孤立笔记；认知引擎里是<strong>同时驱动多个判断变化的触发事件</strong>。Knowledge → Wisdom 在此真实发生。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENGINE · 引擎机制（机制 + 节点 + 协议）-->
+  <section id="engine">
+    <div class="kh">
+      <div class="kh-eyebrow">CORE MECHANISMS · 引擎机制</div>
+      <h2>支撑 <em>"判断"</em> 的<br>三大工程化机制</h2>
+      <p class="kh-sub">这三件事任何一个传统笔记系统都没做，组合在一起才让 Wisdom 涌现可能</p>
+    </div>
+
+    <div class="mech-grid">
+      <div class="mech-card">
+        <div class="mech-num">①</div>
+        <div class="mech-title">双轨 Wiki</div>
+        <p class="mech-desc">把<strong>客观知识</strong>（事实 / 数据 / 理论 — 求真求实）和<strong>主观判断</strong>（观点 / 解读 / 框架 — 主体性）分两条轨道维护。客观轨可以喂 AI，主观轨是你的护城河。</p>
+      </div>
+      <div class="mech-card">
+        <div class="mech-num">②</div>
+        <div class="mech-title">Falsifier 协议</div>
+        <p class="mech-desc">每个判断都标注 <strong>"什么情况下我会承认错了"</strong>。判断不是信仰，是带证伪清单的假设。置信度三档动态升降：🔴 初判 → 🟡 验证中 → 🟢 稳定。</p>
+      </div>
+      <div class="mech-card">
+        <div class="mech-num">③</div>
+        <div class="mech-title">反馈闭环</div>
+        <p class="mech-desc">每次实践产生的反馈，<strong>不是"记下来感悟一下"</strong>，而是修改方法论文件 → 自动反向追加 evidence 到所有关联判断节点。系统永久升级。</p>
+      </div>
+    </div>
+
+    <!-- 节点 schema -->
+    <div style="margin-top: 36px;">
+      <div class="kh" style="margin-bottom: 22px;">
+        <div class="kh-eyebrow">NODE SCHEMA · 判断节点</div>
+        <h2 style="font-size: 22px;">一个判断节点 <em>长什么样</em></h2>
+      </div>
+
+      <div class="schema-card">
+        <pre class="schema-code"><span class="key">type:</span> <span class="val">cognition</span>
+<span class="key">domain:</span> <span class="val">[领域]</span>
+<span class="key">layer:</span> <span class="val">[判断层级]</span>
+<span class="key">confidence:</span> <span class="yellow">🟡 0.65</span>   <span class="comment"># 三档动态升降</span>
+<span class="key">evolution-stage:</span> <span class="val">[萌芽 / 加速 / 稳定 / 拥挤]</span>
+<span class="key">evidence:</span>                  <span class="comment"># 支撑证据 · 带日期</span>
+  - YYYY-MM-DD [新证据 1]
+  - YYYY-MM-DD [新证据 2]
+<span class="key">falsifiers:</span>                <span class="comment"># 会推翻此判断的条件</span>
+  - <span class="val">F1: [条件 1]</span>
+  - <span class="val">F2: [条件 2]</span>
+  - <span class="val">F3: [条件 3]</span>
+<span class="key">methodology:</span> <span class="val">[[关联方法论文件]]</span>
+<span class="key">updated:</span> <span class="val">YYYY-MM-DD</span></pre>
+        <ul class="schema-points">
+          <li><strong>三档置信度</strong> — 每次新证据自动复核，不是一次性的判断</li>
+          <li><strong>证伪条件清单</strong> — 判断不是信仰，是带"如何被推翻"的假设</li>
+          <li><strong>带日期的证据追加</strong> — 方便回头追溯判断如何形成</li>
+          <li><strong>methodology 反向路由</strong> — 方法论升级时自动追加 evidence 到关联节点</li>
+          <li><strong>演化阶段标注</strong> — 不同阶段对应不同行动协议</li>
+          <li><strong>三路双向关联</strong> — 让认知网络能自我演化</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 8 层架构 -->
+    <div style="margin-top: 40px;">
+      <div class="kh" style="margin-bottom: 22px;">
+        <div class="kh-eyebrow">ARCHITECTURE · 八层闭环</div>
+        <h2 style="font-size: 22px;">完整的 <em>八层架构</em> + 系统层</h2>
+      </div>
+
+      <div class="layer-stack">
+        <div class="layer l-sys">
+          <div class="lnum">_System</div>
+          <div class="lname">Agent 操作协议<small>SOUL / AGENT_PROTOCOL — 系统层（每次必读）</small></div>
+        </div>
+        <div class="layer l0">
+          <div class="lnum">00</div>
+          <div class="lname">Inbox<small>外部信息反应 · 双槽位 / 信号池 / 变化池</small></div>
+        </div>
+        <div class="layer l1">
+          <div class="lnum">01</div>
+          <div class="lname">Drafts<small>内部思考草稿 · 双状态 published / processed</small></div>
+        </div>
+        <div class="layer l2">
+          <div class="lnum">02</div>
+          <div class="lname">Memory<small>高压缩背景 · Agent 每次必读</small></div>
+        </div>
+        <div class="layer l3">
+          <div class="lnum">03</div>
+          <div class="lname">Knowledge Wiki<small>外部知识 · Entities / Facts / Concepts / Theories</small></div>
+        </div>
+        <div class="layer l4">
+          <div class="lnum">04</div>
+          <div class="lname">★ Cognition Wiki<small>内在判断 · World / Domain / Self / Meta — 你的护城河</small></div>
+        </div>
+        <div class="layer l5">
+          <div class="lnum">05</div>
+          <div class="lname">Topics<small>方法论实例化工作台 · 主题研究 / 内容 / 产品</small></div>
+        </div>
+        <div class="layer l6">
+          <div class="lnum">06</div>
+          <div class="lname">Workbench<small>执行 + 反馈层 · Daily / Weekly / Synthesis / Position</small></div>
+        </div>
+        <div class="layer l7">
+          <div class="lnum">07</div>
+          <div class="lname">Methodology<small>方法论库 · Investment / Content / Meta</small></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERIES · 系列首期 -->
+  <section id="series">
+    <div class="kh">
+      <div class="kh-eyebrow">SERIES · 认知引擎构建日志</div>
+      <h2>第一期 <em>已发布</em></h2>
+    </div>
+
+    <a href="https://mp.weixin.qq.com/s/0siROTg4fgMMadOJ_3KZtw" target="_blank" class="series-card">
+      <div>
+        <span class="ep-badge">第一期 · 已发布</span>
+        <div class="series-title">你的知识管理系统<br>止步于 Knowledge 层</div>
+        <p class="series-thesis">
+          为什么 80 年的知识管理史，没能把我们带到 Wisdom 层 —— 从 Memex 到 LLM Wiki，
+          所有工具都卡在同一条天花板下。本文展开这条线为什么存在，以及如何突破它。
+        </p>
+      </div>
+      <span class="series-cta">↗ 阅读全文</span>
+    </a>
+  </section>
+
+  <!-- DEMOS · 实战 Demo -->
+  <section id="demos">
+    <div class="kh">
+      <div class="kh-eyebrow">INTERACTIVE DEMOS · 判断如何运转</div>
+      <h2>引擎机制 <em>实际怎么跑</em></h2>
+      <p class="kh-sub">三个 Demo — <strong>判断如何产生 · 如何支持决策 · 如何日常运转</strong>。<br>这是认知引擎与 LLM Wiki 最大的差别：不停在"知识维护"，要到"判断工程化"。</p>
+    </div>
+
+    <div class="demo-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <a href="Demo1-信息流转追踪.html" class="demo-card">
+        <div class="demo-head">
+          <div class="demo-num">Demo 01 · 判断如何产生</div>
+          <div class="demo-title">从"模糊初判"到"状态机"</div>
+          <div class="demo-sub">一个判断节点的 90 天完整生命周期</div>
+        </div>
+        <div class="demo-body">
+          展示判断如何从 🔴 0.40 升到 🟢 0.85，evolution-stage 5 次切换，Falsifier 反向证伪深化，最终触发协议化决策。
+        </div>
+        <div class="demo-foot">
+          <span class="demo-link">查看 Demo →</span>
+        </div>
+      </a>
+
+      <a href="Demo2-认知网络结构.html" class="demo-card">
+        <div class="demo-head">
+          <div class="demo-num">Demo 02 · 判断如何支持决策</div>
+          <div class="demo-title">情绪化 vs 协议化决策</div>
+          <div class="demo-sub">从"差点犯错"到永久协议化</div>
+        </div>
+        <div class="demo-body">
+          双路径对比：当价格跳起来时，<strong>"你冷静时写的规则" vs "当下的 FOMO"</strong>。反馈反哺方法论让协议永久升级。
+        </div>
+        <div class="demo-foot">
+          <span class="demo-link">查看 Demo →</span>
+        </div>
+      </a>
+
+      <a href="Demo3-每日心跳运转.html" class="demo-card">
+        <div class="demo-head">
+          <div class="demo-num">Demo 03 · 判断如何日常运转</div>
+          <div class="demo-title">每日心跳的扇出</div>
+          <div class="demo-sub">5 个定时任务 + 5 分钟阅读</div>
+        </div>
+        <div class="demo-body">
+          一条新数据公布<strong>自动同时触动多个判断节点</strong>：evidence 追加 / Falsifier 状态变化 / 演化阶段切换 / 升格议案。
+        </div>
+        <div class="demo-foot">
+          <span class="demo-link">查看 Demo →</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta-band">
+    <h3>把这套引擎搭到你的领域</h3>
+    <p>认知引擎 Starter —— 一份最小化、可被 LLM 实例化的判断引擎模板。Fork 它，把 schema 调成你的领域，让 LLM 帮你维护判断图谱。与 LLM Wiki 完全兼容、可叠加。</p>
+    <div class="cta-btns">
+      <a href="https://github.com/FunSHH/cognitive-os/tree/main/starter/zh" target="_blank" class="cta-btn primary">认知引擎 Starter ↗</a>
+      <a href="themes/" class="cta-btn ghost">看投资主题示例 →</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div><strong>Cognitive OS</strong> · 一个为"判断"而设计的工程系统 · Maxwell</div>
+  <div>不止于记得更多，而是判断得更对</div>
+</footer>
+
+</body>
+</html>

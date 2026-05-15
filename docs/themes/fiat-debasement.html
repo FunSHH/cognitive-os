@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>法币信用稀释与真实资产重估 · 主题动态 · Cognitive OS</title>
+<style>
+  :root {
+    --sand: #f8f6f2;
+    --sand-mid: #f0ede7;
+    --sand-deep: #e8e4d8;
+    --ink: #1a1a1a;
+    --ink-mid: #4a4a4a;
+    --ink-soft: #777;
+    --ink-ghost: #b0aba0;
+    --border: #e0ddd6;
+    --border-lt: #ece9e2;
+    --active: #c8a050;
+    --active-bg: #fdf6e8;
+    --active-border: #e8d5a0;
+    --active-dark: #8a6020;
+    --conf-high: #2d7a50;
+    --conf-mid: #b08020;
+    --conf-low: #b04040;
+    --green: #5a9a6a;
+    --green-bg: #e6f5ec;
+    --yellow: #d4a418;
+    --yellow-bg: #fdf4dc;
+    --red: #c04848;
+    --red-bg: #fceeec;
+    --gray-bg: #f0ede7;
+  }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+    background: var(--sand);
+    color: var(--ink);
+    line-height: 1.65;
+    font-size: 14px;
+  }
+  a { text-decoration: none; color: inherit; }
+
+  /* ─── NAV ─── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(248, 246, 242, 0.95);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    height: 54px; padding: 0 40px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-brand {
+    font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-back, .nav-engine {
+    font-size: 11.5px; color: var(--ink-soft);
+    padding: 5px 12px; border: 1px solid var(--border);
+    border-radius: 6px; transition: all 0.15s;
+  }
+  .nav-back:hover, .nav-engine:hover { background: #fff; color: var(--ink); }
+  .nav-links { display: flex; gap: 8px; }
+  @media (max-width: 760px) { nav { padding: 0 20px; } .nav-engine { display: none; } }
+
+  /* ─── PAGE ─── */
+  .page { max-width: 980px; margin: 0 auto; padding: 0 40px 80px; }
+  @media (max-width: 760px) { .page { padding: 0 20px 60px; } }
+
+  /* ─── HEADER ─── */
+  .topic-header {
+    padding: 52px 0 32px; border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+  .crumb {
+    font-size: 11px; color: var(--ink-ghost); margin-bottom: 14px;
+    letter-spacing: 0.08em;
+  }
+  .crumb a { color: var(--active); }
+  .topic-header h1 {
+    font-size: 34px; font-weight: 700; letter-spacing: -0.025em;
+    line-height: 1.2; margin-bottom: 14px;
+  }
+  .topic-meta {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px;
+  }
+  .tag {
+    font-size: 11px; font-weight: 600;
+    padding: 4px 10px; border-radius: 5px;
+    letter-spacing: 0.02em;
+  }
+  .tag-active { background: var(--active-bg); color: var(--active-dark); border: 1px solid var(--active-border); }
+  .tag-conf { background: var(--green-bg); color: var(--conf-high); border: 1px solid #b8dcc0; }
+  .tag-stage { background: #fce0e0; color: #b04848; border: 1px solid #f0bdbd; }
+  .tag-update {
+    background: transparent; color: var(--ink-soft);
+    border: 1px solid var(--border); font-weight: 500;
+  }
+  .topic-summary {
+    font-size: 15px; color: var(--ink-mid); max-width: 720px;
+    line-height: 1.75;
+  }
+  .topic-summary strong { color: var(--ink); }
+
+  /* ─── SECTION ─── */
+  section { margin-bottom: 48px; }
+  .section-head {
+    display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px;
+  }
+  .section-head h2 {
+    font-size: 17px; font-weight: 700; letter-spacing: -0.015em;
+  }
+  .section-head p { font-size: 12px; color: var(--ink-ghost); }
+  .section-divider { flex: 1; height: 1px; background: var(--border); }
+
+  /* ─── JUDGMENT CARD ─── */
+  .judgment-card {
+    background: #fff; border: 1px solid var(--border);
+    border-left: 3px solid var(--active);
+    border-radius: 10px; padding: 24px 28px;
+  }
+  .judgment-date {
+    font-size: 11px; color: var(--active-dark); font-weight: 600;
+    letter-spacing: 0.06em; margin-bottom: 12px;
+  }
+  .judgment-card h3 {
+    font-size: 16px; font-weight: 700; margin-bottom: 14px;
+    line-height: 1.4;
+  }
+  .judgment-card p {
+    font-size: 13.5px; color: var(--ink-mid); line-height: 1.8;
+    margin-bottom: 12px;
+  }
+  .judgment-card p:last-child { margin-bottom: 0; }
+  .judgment-card strong { color: var(--ink); }
+  .judgment-card .highlight {
+    background: var(--yellow-bg); padding: 1px 5px; border-radius: 3px;
+    color: var(--ink); font-weight: 500;
+  }
+
+  /* ─── L3 CHAIN ─── */
+  .chain {
+    background: #fff; border: 1px solid var(--border); border-radius: 10px;
+    padding: 22px 26px;
+  }
+  .chain-flow {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 4px; margin-bottom: 18px;
+  }
+  .chain-node {
+    background: var(--gray-bg); border-radius: 6px;
+    padding: 12px 8px; text-align: center;
+    font-size: 11px; line-height: 1.35;
+    border: 1px solid var(--border);
+  }
+  .chain-node.done { background: var(--green-bg); border-color: #b8dcc0; color: var(--conf-high); }
+  .chain-node.partial { background: var(--yellow-bg); border-color: #f0d0a0; color: var(--conf-mid); }
+  .chain-node .num { display: block; font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+  .chain-bottleneck {
+    background: var(--yellow-bg); border: 1px solid #f0d0a0;
+    border-radius: 6px; padding: 10px 14px;
+    font-size: 12px; color: var(--ink-mid); line-height: 1.6;
+  }
+  .chain-bottleneck strong { color: var(--conf-mid); }
+  @media (max-width: 760px) { .chain-flow { grid-template-columns: repeat(3, 1fr); } }
+
+  /* ─── L2 NARRATIVES ─── */
+  .narrative-list {
+    background: #fff; border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden;
+  }
+  .narrative-row {
+    display: grid; grid-template-columns: 1fr 130px 60px;
+    gap: 16px; padding: 14px 22px;
+    border-bottom: 1px solid var(--border-lt);
+    align-items: center; font-size: 12.5px;
+  }
+  .narrative-row:last-child { border-bottom: none; }
+  .narrative-row.head {
+    background: var(--sand-mid); color: var(--ink-soft);
+    font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .narrative-name { font-weight: 600; color: var(--ink); }
+  .narrative-claim {
+    font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; font-weight: 400;
+  }
+  .narrative-stage { font-size: 11px; color: var(--ink-mid); }
+  .narrative-heat {
+    text-align: center; font-weight: 700;
+    font-family: "SF Mono", monospace;
+  }
+  .heat-S { color: var(--active); }
+  .heat-A { color: var(--yellow); }
+
+  /* ─── L5 PRICING ─── */
+  .pricing-grid {
+    display: grid; gap: 10px;
+  }
+  .pricing-row {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 18px;
+    display: grid; grid-template-columns: 1.4fr 90px 1fr;
+    gap: 14px; align-items: center;
+  }
+  .price-scenario { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .price-scenario small { display: block; font-size: 11px; color: var(--ink-soft); font-weight: 400; margin-top: 2px; }
+  .price-bar-container {
+    height: 10px; background: var(--border-lt); border-radius: 5px;
+    overflow: hidden; position: relative;
+  }
+  .price-bar {
+    height: 100%; border-radius: 5px;
+    background: linear-gradient(to right, #c8a050, #c0805a);
+  }
+  .price-bar.crowded { background: linear-gradient(to right, #c87850, #b04848); }
+  .price-bar.early { background: linear-gradient(to right, #88a878, #c8a050); }
+  .price-text {
+    font-size: 11.5px; color: var(--ink-mid); line-height: 1.5;
+  }
+  .price-pct { font-size: 13px; font-weight: 700; color: var(--ink); font-family: "SF Mono", monospace; }
+  @media (max-width: 760px) { .pricing-row { grid-template-columns: 1fr; } }
+
+  /* ─── FALSIFIERS ─── */
+  .falsifier-list {
+    background: #fff; border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden;
+  }
+  .falsifier-row {
+    display: grid; grid-template-columns: 50px 1fr 200px;
+    gap: 16px; padding: 14px 22px;
+    border-bottom: 1px solid var(--border-lt);
+    align-items: center; font-size: 12.5px;
+  }
+  .falsifier-row:last-child { border-bottom: none; }
+  .falsifier-row.head {
+    background: var(--sand-mid); color: var(--ink-soft);
+    font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .f-num {
+    font-weight: 700; color: var(--ink); font-family: "SF Mono", monospace;
+    font-size: 13px;
+  }
+  .f-cond { color: var(--ink-mid); line-height: 1.55; }
+  .f-status {
+    font-size: 11.5px; font-weight: 600;
+    padding: 4px 10px; border-radius: 5px;
+    text-align: center;
+  }
+  .f-deep-deny { background: var(--red-bg); color: var(--red); border: 1px solid #f0bcbc; }
+  .f-deny { background: #f8e8e0; color: var(--active-dark); border: 1px solid #e8c8b0; }
+  .f-warn { background: var(--yellow-bg); color: var(--conf-mid); border: 1px solid #f0d0a0; }
+  .f-support { background: var(--green-bg); color: var(--conf-high); border: 1px solid #b8dcc0; }
+  .f-untriggered { background: var(--gray-bg); color: var(--ink-soft); border: 1px solid var(--border); }
+  @media (max-width: 760px) { .falsifier-row { grid-template-columns: 40px 1fr; } .falsifier-row > :last-child { grid-column: 1 / -1; } }
+
+  /* ─── TIMELINE ─── */
+  .timeline {
+    background: #fff; border: 1px solid var(--border); border-radius: 10px;
+    padding: 22px 28px;
+  }
+  .timeline-item {
+    padding: 14px 0; border-bottom: 1px dashed var(--border-lt);
+    display: grid; grid-template-columns: 110px 1fr;
+    gap: 18px;
+  }
+  .timeline-item:last-child { border-bottom: none; }
+  .timeline-date {
+    font-size: 11.5px; font-weight: 700; color: var(--active-dark);
+    font-family: "SF Mono", monospace;
+  }
+  .timeline-body { font-size: 12.5px; color: var(--ink-mid); line-height: 1.7; }
+  .timeline-body strong { color: var(--ink); }
+
+  /* ─── FOOTER ─── */
+  .privacy-note {
+    background: var(--sand-mid); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 18px;
+    font-size: 11.5px; color: var(--ink-mid); line-height: 1.65;
+    margin-bottom: 40px;
+  }
+  .privacy-note strong { color: var(--ink); }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 26px 40px; max-width: 980px; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: var(--ink-ghost);
+  }
+  footer strong { color: var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">法币信用稀释与真实资产重估 · 主题动态</div>
+  <div class="nav-links">
+    <a href="index.html" class="nav-back">← 全部主题</a>
+    <a href="../index.html" class="nav-engine">Cognitive OS</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="topic-header">
+    <div class="crumb"><a href="index.html">投资主题</a> &nbsp;→&nbsp; 全球秩序重构与真实约束回归 &nbsp;→&nbsp; <strong>法币信用稀释与真实资产重估</strong></div>
+    <h1>法币信用稀释与真实资产重估</h1>
+    <div class="topic-meta">
+      <span class="tag tag-active">🔥 Active</span>
+      <span class="tag tag-conf">🟢 高置信</span>
+      <span class="tag tag-stage">拥挤期 S+ 临界推进</span>
+      <span class="tag tag-update">最近一次蒸馏：本周</span>
+    </div>
+    <p class="topic-summary">
+      高债务 + 财政主导 + 央行政策框架重定价 = <strong>法币长期锚结构性松动</strong>。
+      贵金属作为真实资产的战略权重提升，已从"周期交易资产"升级为"SAA 核心资产"；
+      白银双重属性（货币 + 工业）兑现深化形成独立 alpha。
+    </p>
+  </div>
+
+  <!-- 当前判断 -->
+  <section id="judgment">
+    <div class="section-head">
+      <h2>当前判断</h2>
+      <p>基于最新一次蒸馏的核心结论</p>
+      <div class="section-divider"></div>
+    </div>
+    <div class="judgment-card">
+      <div class="judgment-date">⚡ 本周蒸馏 · 三 S 级宏观信号叠加</div>
+      <h3>主情景 Price-In 推进至 65-70% 拥挤期 S+ 临界（70% 阈值临门未越）</h3>
+      <p>
+        <strong>① 通胀三年新高</strong>：CPI 突破三年高位 + 核心 CPI 持续粘性 = "AI 实物约束通胀" + 关税 + 能源
+        <span class="highlight">三轴宏观兑现</span> → 真实资产对冲 thesis 兑现深化（叙事 A "高债务利多黄金" + 叙事 D "真实资产优于名义资产" 双双硬化）。
+      </p>
+      <p>
+        <strong>② 长端利率突破</strong>：30Y UST 突破 5% 后维持 + 10Y 同步上行 = 长久期名义资产估值承压 →
+        <span class="highlight">真实资产相对优势硬化</span>（叙事 C 去美元化 + 叙事 B 财政主导 = 二阶映射）。
+      </p>
+      <p>
+        <strong>③ 货币政策框架制度化切换</strong>：中央银行主席接任程序进入临门窗口 + 新主席政策框架代表"重定价" =
+        <span class="highlight">中央银行独立性结构性松动深化</span>（叙事 A 法币稀释机制层进一步硬化）。
+      </p>
+      <p>
+        <strong>演化阶段升级</strong>：从"制度化前段 S- 边缘"推进至"拥挤期 S+ 临界推进"（Price-In 60-65% → 65-70%）。
+        按 v3.2 协议量化锚点，PI ≥ 70% 即触发完全鱼尾期减仓窗口；本次 65-70% 临界但<strong>未完全触发</strong>。
+        本周后期密集风险事件窗口（中央银行接任 + 大国领导人会晤 + 重要科技公司财报）将决定 PI 是否完全突破 70% 阈值。
+      </p>
+      <p>
+        <strong>双视角错位</strong>：主情景同向高（拥挤期临界）；白银双重属性研究领先 ✓ 维持；
+        管理脱钩制度化情景 Price-In 25% × 🟢 同向低边缘（早期建仓窗口仍打开）。
+      </p>
+    </div>
+  </section>
+
+  <!-- L3 TRANSMISSION -->
+  <section id="l3">
+    <div class="section-head">
+      <h2>事实路径（L3 传导层）</h2>
+      <p>5 节点传导链 · 机制 → 信心 → 配置 → SAA 重估</p>
+      <div class="section-divider"></div>
+    </div>
+    <div class="chain">
+      <div class="chain-flow">
+        <div class="chain-node done"><span class="num">①</span>高债务 / 财政主导</div>
+        <div class="chain-node done"><span class="num">②</span>法币信用受压</div>
+        <div class="chain-node partial"><span class="num">③</span>市场信心下降</div>
+        <div class="chain-node partial"><span class="num">④</span>配置需求上升</div>
+        <div class="chain-node partial"><span class="num">⑤</span>SAA 框架重估</div>
+      </div>
+      <div class="chain-bottleneck">
+        <strong>⚠️ 当前瓶颈 — 节点 ④⑤</strong>：配置需求与 SAA 框架重估正在推进，但贵金属短期受实际利率 / 美元压制，市场仍在"周期交易"与"SAA 重估"两种框架间摇摆。
+        节点 ① 机制确立 ✅；节点 ② 央行储备份额跌至历史低位 + Q1 央行购金创纪录 ✅。
+      </div>
+    </div>
+  </section>
+
+  <!-- L2 NARRATIVES -->
+  <section id="l2">
+    <div class="section-head">
+      <h2>叙事路径（L2）</h2>
+      <p>4 条叙事 S 曲线状态追踪</p>
+      <div class="section-divider"></div>
+    </div>
+    <div class="narrative-list">
+      <div class="narrative-row head">
+        <div>叙事 · 核心命题</div>
+        <div>S 曲线阶段</div>
+        <div>热度</div>
+      </div>
+      <div class="narrative-row">
+        <div>
+          <div class="narrative-name">叙事 A · 高债务利多贵金属</div>
+          <div class="narrative-claim">债务压力与财政扩张削弱法币长期锚</div>
+        </div>
+        <div class="narrative-stage">制度化</div>
+        <div class="narrative-heat heat-S">S</div>
+      </div>
+      <div class="narrative-row">
+        <div>
+          <div class="narrative-name">叙事 B · 金融压制时代</div>
+          <div class="narrative-claim">名义利率无法长期提供足够真实回报</div>
+        </div>
+        <div class="narrative-stage">确认中</div>
+        <div class="narrative-heat heat-A">A</div>
+      </div>
+      <div class="narrative-row">
+        <div>
+          <div class="narrative-name">叙事 C · 去美元化推动需求</div>
+          <div class="narrative-claim">主权机构增加贵金属配置 + 多极货币体系</div>
+        </div>
+        <div class="narrative-stage">数据确立</div>
+        <div class="narrative-heat heat-S">S</div>
+      </div>
+      <div class="narrative-row">
+        <div>
+          <div class="narrative-name">叙事 D · 真实资产优于名义资产</div>
+          <div class="narrative-claim">实体资源稀缺性上升（白银双重属性兑现）</div>
+        </div>
+        <div class="narrative-stage">加速 A → 数据兑现</div>
+        <div class="narrative-heat heat-A">A↑</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- L5 PRICING -->
+  <section id="l5">
+    <div class="section-head">
+      <h2>定价层（L5）</h2>
+      <p>事实路径 × 叙事路径 交汇 — Price-In 与剩余赔率</p>
+      <div class="section-divider"></div>
+    </div>
+    <div class="pricing-grid">
+
+      <div class="pricing-row">
+        <div class="price-scenario">
+          贵金属 SAA 核心资产（新框架）
+          <small>主情景 · 叙事 A/C 制度化 + 三轴宏观兑现</small>
+        </div>
+        <div>
+          <div class="price-pct">~65-70%</div>
+          <div class="price-bar-container"><div class="price-bar crowded" style="width:67%"></div></div>
+        </div>
+        <div class="price-text">
+          <strong style="color:var(--red);">剩余赔率消失/极小</strong> — 接近 70% 完全突破阈值 + 本周风险窗口 close-watch
+        </div>
+      </div>
+
+      <div class="pricing-row">
+        <div class="price-scenario">
+          白银双重属性重估
+          <small>叙事 D 加速 → 数据兑现 + AI 反身性获益</small>
+        </div>
+        <div>
+          <div class="price-pct">~32%</div>
+          <div class="price-bar-container"><div class="price-bar early" style="width:32%"></div></div>
+        </div>
+        <div class="price-text">
+          <strong style="color:var(--conf-high);">中等赔率</strong> — 工业需求 + 货币属性同步加强；连续多年供给赤字；AI 反身性 alpha
+        </div>
+      </div>
+
+      <div class="pricing-row">
+        <div class="price-scenario">
+          管理脱钩制度化（候选情景）
+          <small>叙事 B/C 二阶映射 + 货币框架制度化</small>
+        </div>
+        <div>
+          <div class="price-pct">~25%</div>
+          <div class="price-bar-container"><div class="price-bar early" style="width:25%"></div></div>
+        </div>
+        <div class="price-text">
+          <strong style="color:var(--conf-high);">较大赔率</strong> — 制度化路径已硬化但市场未充分定价；早期建仓考量窗口仍打开（研究领先 ✓ 边缘）
+        </div>
+      </div>
+
+      <div class="pricing-row">
+        <div class="price-scenario">
+          贵金属纯交易性资产（旧框架）
+          <small>叙事 A/C 被数据否定</small>
+        </div>
+        <div>
+          <div class="price-pct">~5%</div>
+          <div class="price-bar-container"><div class="price-bar" style="width:5%"></div></div>
+        </div>
+        <div class="price-text">
+          无赔率 — 框架已被新框架替代
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FALSIFIERS -->
+  <section id="falsifiers">
+    <div class="section-head">
+      <h2>Falsifier 当前状态</h2>
+      <p>5 条证伪条件 · 实时校验中</p>
+      <div class="section-divider"></div>
+    </div>
+    <div class="falsifier-list">
+      <div class="falsifier-row head">
+        <div>F#</div>
+        <div>证伪条件</div>
+        <div>当前状态</div>
+      </div>
+      <div class="falsifier-row">
+        <div class="f-num">F1</div>
+        <div class="f-cond">财政债务压力显著缓解（机制层崩塌）</div>
+        <div class="f-status f-deep-deny">⛔ 反向证伪极致深化（三轴齐推）</div>
+      </div>
+      <div class="falsifier-row">
+        <div class="f-num">F2</div>
+        <div class="f-cond">长期实际利率维持高位且稳定</div>
+        <div class="f-status f-warn">⚠️ 部分压力延续 + 长端硬化</div>
+      </div>
+      <div class="falsifier-row">
+        <div class="f-num">F3</div>
+        <div class="f-cond">贵金属重新退回纯交易性资产角色</div>
+        <div class="f-status f-untriggered">❌ 未触发</div>
+      </div>
+      <div class="falsifier-row">
+        <div class="f-num">F4</div>
+        <div class="f-cond">真实资产不具备长期相对优势</div>
+        <div class="f-status f-untriggered">❌ 未触发（反向证伪边际增强）</div>
+      </div>
+      <div class="falsifier-row">
+        <div class="f-num">F5</div>
+        <div class="f-cond">债券重新恢复稳定防御属性</div>
+        <div class="f-status f-untriggered">❌ 未触发</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section id="timeline">
+    <div class="section-head">
+      <h2>推进时间线</h2>
+      <p>主要演化节点 · 按时间倒序（最近 6 次）</p>
+      <div class="section-divider"></div>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-date">本周</div>
+        <div class="timeline-body">
+          ⭐ <strong>三 S 级宏观信号叠加 → 拥挤期 S+ 临界推进</strong>。CPI 三年新高 + 长端利率突破 5% 维持 + 货币政策框架制度化切换临门 = 法币稀释路径三轴硬化。
+          主情景 Price-In 从 60-65% 推进至 65-70% 临界；按 v3.2 协议量化锚点未完全触发减仓窗口（差 ~5pp）。本周风险事件窗口 close-watch。
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">上周</div>
+        <div class="timeline-body">
+          ⭐ <strong>白银双重属性硬数据兑现 + 三叙事独立硬化</strong>。金银比率创 13 年低 + 白银年内涨幅创历史 + AI 高频电路 / 太阳能驱动工业新增需求 +
+          连续多年供给赤字。L5 白银情景 Price-In ~25% → ~32%（剩余赔率仍中等，价格驱动从"叙事 + 央行行为"扩展至"硬工业需求"）。
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">上周</div>
+        <div class="timeline-body">
+          <strong>跨主题 AI 集中度 trigger 的反身性获益</strong>。AI exuberance 越极端，真实资产对冲价值越提升 = 本主题作为"AI 反身性获益方"的独立 alpha 路径硬化。
+          叙事 D 升级"加速 → 数据兑现"；演化阶段从"制度化前段 S- 边缘"切至"拥挤期 S+ 临界"。
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">月初</div>
+        <div class="timeline-body">
+          <strong>Q1 全球央行净购金 244 吨</strong>（同比 +3%）= 创季度历史纪录；某新兴市场央行自 2018 首次净买入 + 某发达市场央行自 2013 重启购金
+          = 叙事 C 从"少数 EM"扩展到 G20 长期非买家，<strong>质变信号</strong>。
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">月初</div>
+        <div class="timeline-body">
+          <strong>30Y UST 突破 5%</strong> — 贵金属短期承压（实际利率压制）但 SAA 战略逻辑反向加深：长端名义利率↑ = 财政付息加速恶化 = 强化叙事 A 中长期机制。
+          Falsifier F2 "高位"已确认 / "稳定"难证；F1（财政压力缓解）反向证伪深化。
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">月内</div>
+        <div class="timeline-body">
+          <strong>新增综合视图节点</strong>：将"Worldview→Regime→Mechanism→Falsifier"四层路径显式化；
+          关键发现：F2 = 逻辑四（AI vs 债务赛跑）的配置层投影；
+          三处修正回填到对应 World 节点（地缘风险 / 短端长端实际利率二分 / 美元流动性优先序卖盘机制）。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIVACY NOTE -->
+  <div class="privacy-note">
+    <strong>关于本页：</strong>所有判断、演化阶段、Falsifier 状态、信号事实均直接来源于私有的认知引擎 Vault。
+    具体仓位、ETF 代号、决策日期等敏感细节<strong>不在本页公开</strong>。
+    标的以"角色描述"出现（如"贵金属 ETF"/"白银 ETF"），不披露具体代码。
+    本页为<strong>认知记录，不构成投资建议</strong>。
+  </div>
+
+</div>
+
+<footer>
+  <div><strong>法币信用稀释与真实资产重估 · 主题动态</strong> · Powered by Cognitive OS</div>
+  <div><a href="index.html" style="color:var(--active);">← 返回投资主题导航</a></div>
+</footer>
+
+</body>
+</html>
